@@ -3,13 +3,6 @@ setlocal
 
 set MAYA_MODULE_PATH=%~dp0;
 
-rem Check if Python is installed
-python -c "import sys" 2>nul
-if %errorlevel% neq 0 (
-    echo Python is not installed. Please install Python and try again.
-    exit /b 1
-)
-
 rem Install Python dependencies using pip
 pip install -r requirements.txt
 

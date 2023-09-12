@@ -15,6 +15,6 @@ set MAYA_NO_WARNING_FOR_MISSING_DEFAULT_RENDERER=1
 set MAYA_SKIP_USERSETUP_CHECK=1
 
 rem Start Maya
-start "" "C:\Program Files\Autodesk\Maya2022\bin\maya.exe" -hideConsole
+start "" "C:\Program Files\Autodesk\Maya2023\bin\maya.exe" -hideConsole
 
 endlocal
