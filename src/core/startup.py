@@ -5,22 +5,22 @@ from textwrap import dedent
 
 logger = getLogger(__name__)
 
-from .reload_module import reload_module
+from core.module_handler import reload_module
 
 VERSION = "v.1.0.0"
 
-def startup():
+def build_enviroment():
     # type: () -> None
     mel.eval('source "artAttrCreateMenuItems.mel";')
     build_menu()
 
 def reload(*args):
     # type: (Any) -> None
-    reload_module("rigging_toolkit")
+    reload_module("rigging_toolkit", True)
     cmds.evalDeferred(
         dedent(
             """
-            from rigging_toolkit.core.startup import build_menu
+            from core.startup import build_menu
             build_menu()
             """
         ),
@@ -35,6 +35,7 @@ def check_for_updates(*args):
     # type: (Any) -> None
     logger.warning("TO DO: Add functionality to check for updates and install them inside of Maya")
 
+
 def build_menu():
     # type: () -> None
 
@@ -44,7 +45,7 @@ def build_menu():
     MENU_ITEMS = [
         {
             "name": "open_toolkit",
-            "command": "pass",
+            "command": "from rigging_toolkit.ui import RiggingToolboxWindow;RiggingToolboxWindow.open()",
             "label": "Open Toolkit",
         },
         {

@@ -1,10 +1,7 @@
 @echo off
 setlocal
 
-set MAYA_MODULE_PATH=%~dp0;
-
-rem Install Python dependencies using pip
-pip install -r requirements.txt
+set MAYA_MODULE_PATH=%~dp0;%MAYA_MODULE_PATH%
 
 set MAYA_DISABLE_CLIC_IPM=1
 set MAYA_DISABLE_CIP=1
