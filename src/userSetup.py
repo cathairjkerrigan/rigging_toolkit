@@ -11,3 +11,13 @@ cmds.evalDeferred(
     ),
     lp=True,
 )
+
+cmds.evalDeferred(
+    dedent(
+        """
+        from core.toolkit_shelf import ToolkitShelf
+        ToolkitShelf()
+        """
+    ),
+    lp=True,
+)
