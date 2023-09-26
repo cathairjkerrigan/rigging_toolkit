@@ -3,6 +3,8 @@ import sys
 from logging import getLogger
 import importlib
 
+DEBUG = False
+
 logger = getLogger(__name__)
 
 def reload_module(module_name, include_submodules=False):
@@ -30,6 +32,6 @@ def reload_module(module_name, include_submodules=False):
             unload_modules.append(module)
 
     for module in unload_modules:
-        print(module)
+        if DEBUG: logger.info(module)
         del sys.modules[module]
-        print("deleted module: {}".format(module))
+        if DEBUG: logger.info("deleted module: {}".format(module))
