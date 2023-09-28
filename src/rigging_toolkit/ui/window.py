@@ -2,6 +2,8 @@ from PySide2 import QtWidgets
 
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 
+from rigging_toolkit.maya.utils import toggle_template_display_for_all_meshes
+
 import logging
 
 from shiboken2 import getCppPointer
@@ -39,3 +41,4 @@ class RiggingToolboxWindow(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 
     def test_func(self):
         logger.info("Button test")
+        toggle_template_display_for_all_meshes()

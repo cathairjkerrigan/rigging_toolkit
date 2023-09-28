@@ -15,7 +15,7 @@ cmds.evalDeferred(
 cmds.evalDeferred(
     dedent(
         """
-        from core.toolkit_shelf import ToolkitShelf
+        from core.shelf.toolkit_shelf import ToolkitShelf
         ToolkitShelf()
         """
     ),
