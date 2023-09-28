@@ -39,3 +39,7 @@ def delete_keyframes_from_selection(selection):
 def select_hiearchy(selection):
     # type: (List) -> None
     cmds.select(selection, hi=True)
+
+def ls():
+    # type: () -> List
+    return cmds.ls(sl=1)
