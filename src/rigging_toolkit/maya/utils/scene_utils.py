@@ -1,5 +1,7 @@
 from maya import cmds
 import logging
+from pathlib import Path
+from typing import List
 
 logger = logging.getLogger(__name__)
 
@@ -35,3 +37,16 @@ def delete_unknown_nodes():
                 # Oddly enough, even if a plugin is unknown, it can still have a dependency in the scene.
                 # So in this case, we log the error to look at after.
                 logging.warning("Unknown plugin cannot be removed due to ERROR: {}".format(error))
+
+def import_asset(path):
+    # type: (Path) -> None
+    cmds.file(str(path), i=True, uns=False)
+
+def import_assets(paths):
+    # type: (List[Path]) -> None
+    for path in paths:
+        import_asset(path)
+
+def get_all_transforms():
+    # type: () -> List[str]
+    return cmds.ls(exactType="transform")
