@@ -9,6 +9,8 @@ from pathlib import Path
 from maya import cmds
 from rigging_toolkit.maya.shaders.build_shaders import PBRShader, setup_textures
 from rigging_toolkit.maya.assets.asset_manager import export_all_character_assets
+from rigging_toolkit.maya.rigging import load_from_json, save_to_json
+import pprint
 
 import logging
 
@@ -72,4 +74,20 @@ class RiggingToolboxWindow(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         setup_textures(self.context)
 
     def test_func_2(self):
-        export_all_character_assets(self.context)
+        # ctrls = cmds.ls(sl=1)
+
+        path = r"F:\university_work\controller_test.json"
+
+        # save_to_json(ctrls, path)
+
+        # cmds.file(new=True, f=True)
+
+        controllers = load_from_json(path)
+
+        # controller[0].apply(create_missing=True)
+        for controller in controllers:
+            controller.apply(create_missing=True)
+
+        # pprint.pprint(ctrls)
+        # cmds.file(new=True, f=True)
+        # ctrls.apply(create_missing=True)

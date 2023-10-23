@@ -1,0 +1,464 @@
+[
+    {
+        "name": "r_shoulder_bind",
+        "position": [
+            10.854199333867696,
+            93.08786462172507,
+            -4.253976436969225
+        ],
+        "jointOrient": [
+            -6.201362444355025,
+            -1.9878466759146985e-16,
+            -148.2162180869679
+        ],
+        "rotation": [
+            -6.201362444355025,
+            -1.9878466759146985e-16,
+            -148.2162180869679
+        ],
+        "rotationOrder": "xyz",
+        "parent": null,
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_elbow_bind",
+        "position": [
+            20.558894820578036,
+            77.42589601379584,
+            -6.256008638590346
+        ],
+        "jointOrient": [
+            13.384357081831485,
+            0.011131226079263095,
+            -0.10249752482689704
+        ],
+        "rotation": [
+            7.18300459930374,
+            -5.993094555668692e-06,
+            -148.31931826456994
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_shoulder_bind",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_wrist_bind",
+        "position": [
+            29.77927210527081,
+            62.485568331489205,
+            -4.043404503762114
+        ],
+        "jointOrient": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "rotation": [
+            7.18300459930374,
+            -5.993094555668692e-06,
+            -148.31931826456994
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_shoulder_bind|r_elbow_bind",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_indexFinger01_bind",
+        "position": [
+            30.818455209234973,
+            57.567437847640285,
+            -2.14795077231442
+        ],
+        "jointOrient": [
+            5.349634601515495,
+            -2.0131464824937897,
+            -16.187377837387245
+        ],
+        "rotation": [
+            12.246459102372993,
+            -0.0009410454925605961,
+            -164.62807489471535
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_shoulder_bind|r_elbow_bind|r_wrist_bind",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_indexFinger02_bind",
+        "position": [
+            31.19816409326997,
+            56.186289642340554,
+            -1.8370404981001496
+        ],
+        "jointOrient": [
+            -3.7200874657411642,
+            1.710738743868132,
+            7.906829168771919
+        ],
+        "rotation": [
+            8.408033433749706,
+            -0.00048213777857746264,
+            -156.53944266543124
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_shoulder_bind|r_elbow_bind|r_wrist_bind|r_indexFinger01_bind",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_indexFinger03_bind",
+        "position": [
+            32.32423995194456,
+            53.59161815753473,
+            -1.4189599007589544
+        ],
+        "jointOrient": [
+            -1.8354799437419622,
+            0.14572240293687008,
+            0.9855325139271219
+        ],
+        "rotation": [
+            6.571292303693329,
+            -0.00042476492133816505,
+            -155.54319608089207
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_shoulder_bind|r_elbow_bind|r_wrist_bind|r_indexFinger01_bind|r_indexFinger02_bind",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_indexFinger04_bind",
+        "position": [
+            32.992002157492465,
+            52.12341875407113,
+            -1.2331574287412972
+        ],
+        "jointOrient": [
+            -7.95138670365879e-16,
+            -1.8325461543588625e-16,
+            -1.7388222895999156e-14
+        ],
+        "rotation": [
+            6.571292303693329,
+            -0.00042476492133816505,
+            -155.54319608089207
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_shoulder_bind|r_elbow_bind|r_wrist_bind|r_indexFinger01_bind|r_indexFinger02_bind|r_indexFinger03_bind",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_middleFinger01_bind",
+        "position": [
+            31.100149565561395,
+            57.48519467141567,
+            -3.5394149697636665
+        ],
+        "jointOrient": [
+            -7.297647160774018,
+            -2.144815045163531,
+            -17.27927316333282
+        ],
+        "rotation": [
+            -0.44041603824371395,
+            -0.001002156717111136,
+            -165.72716652937325
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_shoulder_bind|r_elbow_bind|r_wrist_bind",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_middleFinger02_bind",
+        "position": [
+            31.51957811171361,
+            55.83644421692851,
+            -3.5524923483555755
+        ],
+        "jointOrient": [
+            0.7134605618296308,
+            -0.09601696182174556,
+            12.685183598149912
+        ],
+        "rotation": [
+            0.2835746094088716,
+            -0.00028017445772699775,
+            -153.04162552599905
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_shoulder_bind|r_elbow_bind|r_wrist_bind|r_middleFinger01_bind",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_middleFinger03_bind",
+        "position": [
+            32.767712904688274,
+            53.38243610655592,
+            -3.5388658975655605
+        ],
+        "jointOrient": [
+            -0.43953594100029736,
+            -0.015334431462204843,
+            -3.063889057996217
+        ],
+        "rotation": [
+            -0.1563517137129825,
+            -0.0004571673426562588,
+            -156.10555291570438
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_shoulder_bind|r_elbow_bind|r_wrist_bind|r_middleFinger01_bind|r_middleFinger02_bind",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_middleFinger04_bind",
+        "position": [
+            33.419973783292804,
+            51.910140473333094,
+            -3.5432602067816763
+        ],
+        "jointOrient": [
+            -1.304524381069021e-16,
+            -1.6151254241806925e-16,
+            -9.394265043511531e-15
+        ],
+        "rotation": [
+            -0.1563517137129825,
+            -0.0004571673426562588,
+            -156.10555291570438
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_shoulder_bind|r_elbow_bind|r_wrist_bind|r_middleFinger01_bind|r_middleFinger02_bind|r_middleFinger03_bind",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_ringFinger01_bind",
+        "position": [
+            31.07004832905061,
+            57.46069520320145,
+            -5.051467271244995
+        ],
+        "jointOrient": [
+            -8.10373641909999,
+            -2.05666061506003,
+            -16.547520915760494
+        ],
+        "rotation": [
+            -1.2196940116766086,
+            -0.000961242488741078,
+            -164.99061175459292
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_shoulder_bind|r_elbow_bind|r_wrist_bind",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_ringFinger02_bind",
+        "position": [
+            31.5042475392551,
+            55.84130081137999,
+            -5.087163452124564
+        ],
+        "jointOrient": [
+            -6.769760079873312,
+            -0.13539486115312135,
+            6.3892059199224525
+        ],
+        "rotation": [
+            -7.981984310437205,
+            -0.0006003198747666517,
+            -158.59997736634082
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_shoulder_bind|r_elbow_bind|r_wrist_bind|r_ringFinger01_bind",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_ringFinger03_bind",
+        "position": [
+            32.315841850375996,
+            53.7703496708183,
+            -5.399055678790754
+        ],
+        "jointOrient": [
+            1.4441602454158942,
+            -0.01946691412160595,
+            0.13888891071276613
+        ],
+        "rotation": [
+            -6.537801930065327,
+            -0.0005922989166380811,
+            -158.45973083533235
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_shoulder_bind|r_elbow_bind|r_wrist_bind|r_ringFinger01_bind|r_ringFinger02_bind",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_ringFinger04_bind",
+        "position": [
+            32.94936104656686,
+            52.165370837457374,
+            -5.596803317734217
+        ],
+        "jointOrient": [
+            -7.951386703658792e-16,
+            -5.466578358765419e-16,
+            -7.529745787634697e-15
+        ],
+        "rotation": [
+            -6.537801930065327,
+            -0.0005922989166380811,
+            -158.45973083533235
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_shoulder_bind|r_elbow_bind|r_wrist_bind|r_ringFinger01_bind|r_ringFinger02_bind|r_ringFinger03_bind",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_pinkieFinger01_bind",
+        "position": [
+            30.949653263478876,
+            57.61285117369796,
+            -6.6216740377881855
+        ],
+        "jointOrient": [
+            -22.552535511250802,
+            -2.199900746363614,
+            -17.7380432895953
+        ],
+        "rotation": [
+            -15.712686313654048,
+            -0.0010277213702271143,
+            -166.1889045853538
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_shoulder_bind|r_elbow_bind|r_wrist_bind",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_pinkieFinger02_bind",
+        "position": [
+            31.278609578580237,
+            56.27467054499117,
+            -7.009347291273588
+        ],
+        "jointOrient": [
+            0.23835715233071086,
+            -0.2844154996544928,
+            1.0112563057103994
+        ],
+        "rotation": [
+            -15.471837468662613,
+            -0.0009694657772485097,
+            -165.13841751291503
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_shoulder_bind|r_elbow_bind|r_wrist_bind|r_pinkieFinger01_bind",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_pinkieFinger03_bind",
+        "position": [
+            31.787329005701228,
+            54.357554078917204,
+            -7.55836088190133
+        ],
+        "jointOrient": [
+            -3.542801183458616,
+            -0.5988812894662204,
+            2.1646872089674405
+        ],
+        "rotation": [
+            -19.003359605483,
+            -0.0008438458828895637,
+            -162.89245250206955
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_shoulder_bind|r_elbow_bind|r_wrist_bind|r_pinkieFinger01_bind|r_pinkieFinger02_bind",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_pinkieFinger04_bind",
+        "position": [
+            32.32288141377382,
+            52.61749798793039,
+            -8.1853657214897
+        ],
+        "jointOrient": [
+            3.1805546814635168e-15,
+            9.889537212675626e-15,
+            -1.6171443309609188e-14
+        ],
+        "rotation": [
+            -19.003359605483,
+            -0.0008438458828895637,
+            -162.89245250206955
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_shoulder_bind|r_elbow_bind|r_wrist_bind|r_pinkieFinger01_bind|r_pinkieFinger02_bind|r_pinkieFinger03_bind",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_thumb01_bind",
+        "position": [
+            29.020678022139894,
+            61.37964881036348,
+            -1.8009829318479618
+        ],
+        "jointOrient": [
+            64.65528697296165,
+            67.79860397813428,
+            27.10850834150071
+        ],
+        "rotation": [
+            79.24374396233966,
+            63.77496433560195,
+            -107.8855529288542
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_shoulder_bind|r_elbow_bind|r_wrist_bind",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_thumb02_bind",
+        "position": [
+            28.821778592053352,
+            59.46436458274862,
+            -0.8730120853370639
+        ],
+        "jointOrient": [
+            -1.0411229306071228,
+            -0.2286945178709024,
+            -14.674366402865985
+        ],
+        "rotation": [
+            64.81809524441218,
+            77.8076735591804,
+            -121.91545446914122
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_shoulder_bind|r_elbow_bind|r_wrist_bind|r_thumb01_bind",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_thumb03_bind",
+        "position": [
+            28.509706908039753,
+            56.6040507923461,
+            -0.3127708057701889
+        ],
+        "jointOrient": [
+            0.0,
+            6.361109362927034e-13,
+            0.0
+        ],
+        "rotation": [
+            64.81809524441218,
+            77.8076735591804,
+            -121.91545446914122
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_shoulder_bind|r_elbow_bind|r_wrist_bind|r_thumb01_bind|r_thumb02_bind",
+        "custom_attributes": {}
+    }
+]

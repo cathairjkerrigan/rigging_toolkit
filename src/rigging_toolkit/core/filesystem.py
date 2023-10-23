@@ -164,4 +164,3 @@ def find_new_version(folder, versioned_name, extension):
     new_path = latest.parent / f"{versioned_name}.v{new_version:03d}.{extension}"
 
     return (new_path, new_version)
-    

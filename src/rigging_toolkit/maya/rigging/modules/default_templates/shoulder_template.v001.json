@@ -1,0 +1,212 @@
+[
+    {
+        "name": "r_clavical01_bind",
+        "position": [
+            2.7852678188881366,
+            94.50054038655642,
+            0.11250717115343839
+        ],
+        "jointOrient": [
+            -27.545793084687084,
+            9.541664044390547e-15,
+            -77.70989482689191
+        ],
+        "rotation": [
+            -27.545793084687084,
+            0.0,
+            -77.70989482689194
+        ],
+        "rotationOrder": "xyz",
+        "parent": null,
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_clavical02_jnt",
+        "position": [
+            9.86236720685886,
+            96.04231734445445,
+            -3.665369742914373
+        ],
+        "jointOrient": [
+            -7.436548108233214,
+            27.367337027934113,
+            -82.9391800826777
+        ],
+        "rotation": [
+            -10.695374625709263,
+            -1.9878466759146985e-16,
+            -161.44270843813862
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_clavical01_bind",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_armPoint01_jnt",
+        "position": [
+            10.854199333867697,
+            93.08786462172507,
+            -4.2539764369692294
+        ],
+        "jointOrient": [
+            -8.377765927247433,
+            -3.6301570134961865,
+            160.3720067353544
+        ],
+        "rotation": [
+            1.6894545501200582,
+            0.0,
+            -1.3905513557133329
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_clavical01_bind|r_clavical02_jnt",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_scapulaRot_jnt",
+        "position": [
+            10.854199409484865,
+            93.0878677368164,
+            -4.253976345062258
+        ],
+        "jointOrient": [
+            -12.605093325912355,
+            1.688956870707143,
+            91.3911555908618
+        ],
+        "rotation": [
+            -12.646103726863888,
+            0.0,
+            89.99999974195504
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_clavical01_bind|r_clavical02_jnt|r_armPoint01_jnt",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_scapula01_bind",
+        "position": [
+            1.8453378677700485,
+            93.08786777738993,
+            -6.275308132319737
+        ],
+        "jointOrient": [
+            8.154211027690646,
+            -12.644898062838026,
+            90.80421772829989
+        ],
+        "rotation": [
+            8.330271667164835,
+            -1.2424041724466865e-17,
+            -179.2152896465013
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_clavical01_bind|r_clavical02_jnt|r_armPoint01_jnt|r_scapulaRot_jnt",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_scapula02_jnt",
+        "position": [
+            1.9225466395060988,
+            87.45080673254861,
+            -5.449830537514741
+        ],
+        "jointOrient": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "rotation": [
+            8.330271667164835,
+            -1.2424041724466865e-17,
+            -179.2152896465013
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_clavical01_bind|r_clavical02_jnt|r_armPoint01_jnt|r_scapulaRot_jnt|r_scapula01_bind",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_trap01_bind",
+        "position": [
+            9.06407119543469,
+            95.62371026303715,
+            -5.56805004328032
+        ],
+        "jointOrient": [
+            -1.5747177402714831,
+            8.079902430719374,
+            -131.26634278047572
+        ],
+        "rotation": [
+            5.456262229033585,
+            0.0,
+            67.7881505456103
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_clavical01_bind|r_clavical02_jnt",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_trap02_jnt",
+        "position": [
+            2.9151934882284474,
+            98.13450434345127,
+            -4.933639415204988
+        ],
+        "jointOrient": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "rotation": [
+            5.456262229033585,
+            0.0,
+            67.7881505456103
+        ],
+        "rotationOrder": "xyz",
+        "parent": "|r_clavical01_bind|r_clavical02_jnt|r_trap01_bind",
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_pec01_bind",
+        "position": [
+            5.629171545204497,
+            88.01780199922311,
+            3.299030068167496
+        ],
+        "jointOrient": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "rotation": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "rotationOrder": "xyz",
+        "parent": null,
+        "custom_attributes": {}
+    },
+    {
+        "name": "r_lat01_bind",
+        "position": [
+            6.418773486245561,
+            86.38914797908659,
+            -4.668506789597484
+        ],
+        "jointOrient": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "rotation": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "rotationOrder": "xyz",
+        "parent": null,
+        "custom_attributes": {}
+    }
+]
