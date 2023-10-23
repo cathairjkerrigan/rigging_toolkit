@@ -159,36 +159,6 @@ class Control:
                     if cmds.nodeType(shape) == "nurbsCurve":
                         cmds.delete(shape)
 
-
-# def dataclass_from_dict(klass, dikt):
-#     try:
-#         fieldtypes = klass.__annotations__
-#         return klass(**{f: dataclass_from_dict(fieldtypes[f], dikt[f]) for f in dikt})
-#     except AttributeError:
-#         if isinstance(dikt, (tuple, list)):
-#             return [dataclass_from_dict(klass.__args__[0], f) for f in dikt]
-#         return dikt
-
-# def extract_controls(controls):
-#     control_list = [Control.from_existing(control) for control in controls]
-
-#     return control_list
-
-# def extract_control(control):
-#     # type: (str) -> Control
-
-#     controller = Control.from_existing(control)
-
-#     return controller
-
-# def export_control(control):
-
-#     controller = extract_control(control)
-
-#     data = asdict(controller)
-
-#     print(data)
-
 # Serialization
 def serialize_control(control):
     return asdict(control)
