@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 import logging
 import re
 
@@ -16,24 +16,70 @@ def create_path(path):
     if not path.exists():
         path.mkdir(parents=True)
 
-def validate_path(path, create_missing=False):
-    # type: (Path, Optional[bool]) -> Path
-    if not path.exists():
+def validate_path(path, create_missing=False, raise_error=False):
+    # type: (Path, Optional[bool], Optional[bool]) -> Path
+    if not path_exists(path):
         if create_missing is True:
             create_path(path)
             return path
-        raise ValueError(f"Cannot Validate Path: {path} does not exist.")
+        if raise_error:
+            raise ValueError(f"Cannot Validate Path: {path} does not exist.")
+        else:
+            if DEBUG: logger.warning(f"Cannot Validate Path: {path} does not exist.")
+            return None
     return path
+
+def path_exists(path):
+    # type: (Path) -> bool
+    if path is None:
+        return False
+    check_path = Path(path)
+    if not check_path.exists():
+        return False
+    else:
+        return True
 
 def has_folders(path):
     # type: (Path) -> bool
     path = validate_path(path)
 
-    folders = list(path.iterdir())
+    folders = [x for x in path.iterdir() if x.is_dir()]
 
     if not folders:
         return False
     return True
+
+def has_files(path):
+    # type: (Path) -> bool
+    path = validate_path(path)
+
+    files = [x for x in path.iterdir() if x.is_file()]
+
+    if not files:
+        return False
+    return True
+
+def has_items(path):
+    # type: (Path) -> bool
+    path = validate_path(path)
+
+    items = list(path.iterdir)
+
+    if not items:
+        return False
+    return True
+
+def get_folders(path, ignore_list=None):
+    # type: (Path, Optional[List[str]]) -> Optional[List[Path]]
+    path = Path(path)
+    if not has_folders(path):
+        return
+    if ignore_list:
+        folders = [x for x in path.iterdir() if x.is_dir() and x.name not in ignore_list]
+    else:
+        folders = [x for x in path.iterdir() if x.is_dir()]
+    return folders
+
 
 def find_latest(folder, versioned_name, extension):
     # type: (Path, str, str) -> Tuple[Optional[Path], int]

@@ -5,6 +5,8 @@ from typing import Optional, List
 from rigging_toolkit.core.filesystem import find_new_version
 
 def get_joint_data(selected_joints):
+    # type: (List[str]) -> dict
+    
     joint_data = []
 
     joint_data = []

@@ -62,3 +62,66 @@ def toggle_template_display_for_all_meshes():
     all_meshes = get_all_shapes()
     for mesh in all_meshes:
         toggle_template_display(mesh)
+
+def convert_to_vertex_list(inComponents):
+    # type: (str) -> str
+    convertedVertices = cmds.polyListComponentConversion(inComponents, tv=True)
+    return cmds.filterExpand(convertedVertices, sm=31, fp=1)
+    
+def shortest_edge_path(start, end):
+    # type: (str, str) -> str
+    curMesh = start.split('.')[0]
+    vertexNumber1 = int(start[start.index("[") + 1: -1])
+    vertexNumber2 = int(end[end.index("[") + 1: -1])
+    edgeSelection = cmds.polySelect(curMesh, shortestEdgePath=[vertexNumber1, vertexNumber2])
+    if edgeSelection is None:
+        cmds.error("selected vertices are not part of the same polyShell!")
+
+    newVertexSelection = []
+    for edge in edgeSelection:
+        midexpand = convert_to_vertex_list(f"{curMesh}.e[{edge}]")
+        newVertexSelection.append(midexpand)
+    
+    return newVertexSelection
+    
+def get_shaders_from_mesh(mesh):
+    # type: (str) -> List[str]
+
+    if not cmds.objExists(mesh):
+        return
+    
+    shapes_in_mesh = cmds.ls(mesh, dag=1,o=1,s=1)
+    
+    shading_groups = cmds.listConnections(shapes_in_mesh, type='shadingEngine')
+    
+    shaders = cmds.ls(cmds.listConnections(shading_groups),materials=1)
+    
+    return shaders
+
+def get_shaders_from_meshes(meshes):
+    # type: (List[str]) -> List[str]
+    collected_shaders = []
+
+    for mesh in meshes:
+        shaders = get_shaders_from_mesh(mesh)
+        if shaders is None:
+            continue
+        for shader in shaders:
+            if not shader in collected_shaders:
+                collected_shaders.append(shader)
+
+    return collected_shaders
+
+def assign_shader(mesh, shader):
+    # type: (str, str) -> None
+    if not cmds.objExists(mesh):
+        logger.warning(f"Failed to assign {shader} to {mesh} -- {mesh} doesn't exist...")
+        return
+    if not cmds.objExists(shader):
+        logger.warning(f"Failed to assign {shader} to {mesh} -- {mesh} doesn't exist...")
+        return
+    cmds.select(mesh)
+    cmds.hyperShade(assign=shader)
+    cmds.select(cl=True)
+
+        

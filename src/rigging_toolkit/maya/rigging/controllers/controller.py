@@ -5,6 +5,7 @@ from dataclasses import dataclass, field, asdict, fields
 from typing import Optional, NamedTuple, List, Text
 from six import iteritems
 
+from rigging_toolkit.maya.utils.api import get_mobject
 
 from pathlib import Path
 import json
@@ -26,12 +27,6 @@ CV = NamedTuple("CV", [("x", float), ("y", float), ("z", float), ("w", float)])
 def default_color():
     # type: () -> Color
     return Color(0,0,0)
-
-def _get_maya_obj(node_name):
-    # type: (str) -> om2.MObject
-    sel = om2.MSelectionList()
-    sel.add(node_name)
-    return sel.getDependNode(0)
 
 @dataclass()
 class Curve:
@@ -113,7 +108,7 @@ class Control:
     @classmethod
     def from_existing(cls, control):
         # type: (Text) -> Control
-        maya_obj = _get_maya_obj(control)
+        maya_obj = get_mobject(control)
         transform_fn = om2.MFnTransform(maya_obj)
         dag_node_fn = om2.MFnDagNode(maya_obj)
 
@@ -138,7 +133,7 @@ class Control:
                     logger.info(f"Ignored curves for non existing control: {self.name}")
                     return False
 
-            maya_obj = _get_maya_obj(self.name)
+            maya_obj = get_mobject(self.name)
 
             self.delete_shapes()
             for i, curve in enumerate(self.curves):
@@ -159,24 +154,24 @@ class Control:
                     if cmds.nodeType(shape) == "nurbsCurve":
                         cmds.delete(shape)
 
-# Serialization
 def serialize_control(control):
+    # type: (Control) -> dict
     return asdict(control)
 
-# Deserialization
 def deserialize_control(control_data):
+    # type:(dict) -> Control
     control_data["curves"] = [Curve(**curve_data) for curve_data in control_data["curves"]]
     return Control(**control_data)
 
-# Saving to a JSON file
 def save_to_json(controls, filename):
+    # type: (List, Path) -> None
     control_list = [Control.from_existing(control) for control in controls]
-    with open(filename, 'w') as file:
+    with open(str(filename), 'w') as file:
         json.dump([serialize_control(control) for control in control_list], file, indent=4)
 
-# Loading from a JSON file
 def load_from_json(filename):
-    with open(filename, 'r') as file:
+    # type: (Path) -> List[Control]
+    with open(str(filename), 'r') as file:
         controls_data = json.load(file)
     return [deserialize_control(control_data) for control_data in controls_data]
 
