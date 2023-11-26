@@ -1,7 +1,7 @@
 @echo off
 setlocal
 
-set MAYA_MODULE_PATH=%~dp0;
+set MAYA_MODULE_PATH=%~dp0;%MAYA_MODULE_PATH%
 
 rem Install Python dependencies using pip
 pip install -r requirements.txt

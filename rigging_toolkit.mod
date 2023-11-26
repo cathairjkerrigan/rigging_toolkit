@@ -38,3 +38,11 @@ MAYA_PLUG_IN_PATH+:=maya/plug-ins/2023/win64
 icons: ./maya/icons
 presets: ./maya/presets
 scripts: ./src
+
++ MAYAVERSION:2024 PLATFORM:win64 rigging_toolkit 1.0 .
+PATH+:=./bin/win64;
+MAYA_PLUG_IN_PATH+:=maya/plug-ins
+MAYA_PLUG_IN_PATH+:=maya/plug-ins/2023/win64
+icons: ./maya/icons
+presets: ./maya/presets
+scripts: ./src
