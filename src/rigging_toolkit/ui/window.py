@@ -6,13 +6,17 @@ from rigging_toolkit.maya.utils import toggle_template_display_for_all_meshes
 from rigging_toolkit.core import Context
 from rigging_toolkit.core.filesystem import has_folders, find_latest
 from pathlib import Path
-from maya import cmds
 from rigging_toolkit.maya.shaders import PBRShader, setup_pbr_textures
 from rigging_toolkit.maya.assets.asset_manager import export_all_character_assets
 from rigging_toolkit.maya.rigging import load_from_json, save_to_json
 import pprint
 from rigging_toolkit.ui.context_ui import ContextUI
 from rigging_toolkit.maya.shaders import export_shaders, setup_shaders
+from rigging_toolkit.ui.widgets import TabWidget
+from rigging_toolkit.ui.tabs.assets import AssetsTab
+from maya import cmds
+
+from rigging_toolkit.ui.tabs.test_tab import TestTab
 
 import logging
 
@@ -39,8 +43,6 @@ class RiggingToolboxWindow(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 
         self.setWindowTitle(self.WINDOW_TITLE)
 
-        self._context = None
-
         self.initial_directory = cmds.internalVar(userPrefDir=True)
 
         self.ignore_list = ["_ignore"]
@@ -49,51 +51,34 @@ class RiggingToolboxWindow(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         
         self.setLayout(self._layout)
 
-        self.test_button = QtWidgets.QPushButton("Test Button")
-
-        self.test_button_2 = QtWidgets.QPushButton("Test Button 2")
-
         self.context_ui = ContextUI()
         self._layout.addWidget(self.context_ui)
+        self._tab_widget = QtWidgets.QTabWidget()
+        self._layout.addWidget(self._tab_widget)
 
-        self._layout.addWidget(self.test_button)
-        self._layout.addWidget(self.test_button_2)
+        self.test_tab = TestTab(context=self.context())
+        self.add_tab(self._tab_widget, self.test_tab)
 
-        self.test_button.clicked.connect(self.test_func)
-        self.test_button_2.clicked.connect(self.test_func_2)
+        self.assets_tab = AssetsTab(context=self.context())
+        self.add_tab(self._tab_widget, self.assets_tab)
 
-        # self.dir_pushbutton.clicked.connect(self.open_dir)
-
-        # self.dir_lineedit.textChanged.connect(self._populate_character_combobox)
-
-        # self.char_combobox.currentIndexChanged.connect(self.update_context)
-
+    
         self._layout.addStretch() 
 
-    def context(self):
-        return self.context_ui.update_context()
+        self._context = self.context()
+
+    def context(self):#
+        context = self.context_ui.update_context()
+        return context
     
     def dockCloseEventTriggered(self):
         # type: () -> None
         self.context_ui.save_settings()
 
-    def test_func(self):
-
-        context = self.context()
-
-        print(context.character_name)
-        print(context.character_path)
-        print(context.animation_path)
-        print(context.assets_path)
-        print(context.texture_path)
-
-        for asset in context.assets_path.iterdir():
-            path = asset / "meshes"
-            name = f"geo_{asset.name}_L1"
-            latest, _ = find_latest(path, name, "abc")
-            cmds.file(str(latest), i=True, uns=False)
-
-        setup_shaders(context)
+    def add_tab(self, tab_widget, child_widget):
+        # type: (QtWidgets.QTabWidget, TabWidget) -> None
+        self.context_ui.context_changed.connect(child_widget._on_context_changed)
+        tab_widget.addTab(child_widget, child_widget.TAB_NAME)
 
 
 

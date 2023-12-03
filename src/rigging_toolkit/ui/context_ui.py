@@ -36,7 +36,7 @@ class ContextUI(QtWidgets.QGroupBox):
         self.create_layouts()
         self.create_connections()
         self.load_settings()
-
+        
     @property
     def suppress_context_changed_signal(self):
         # type: () -> bool
@@ -329,7 +329,7 @@ class ContextUI(QtWidgets.QGroupBox):
     def load_context(self):
         path = self._dir_lineedit.text()
         name = self._char_combobox.currentText()
-        if not path_exists(path) or name is "":
+        if not path_exists(path) or name == "":
             return
         self.context = self.initialize_context(path, name)
 

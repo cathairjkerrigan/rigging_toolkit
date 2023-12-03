@@ -40,6 +40,12 @@ def export_shaders(meshes, file_path):
         if DEBUG: logger.info(f"export shaders: shader -- {shader} | file_path -- {str(path)}")
         export_node_network(shader, path)
 
+def export_selected_shaders(context):
+    # type: (Context) -> None
+    meshes = cmds.ls(sl=1)
+    file_path = context.shaders_path
+    export_shaders(meshes, file_path)
+
 def import_shader(file_path, meshes=None, name_overwrite=None):
     # type: (Path, Optional[List[str]], Optional[str]) -> None
     import_node_network(file_path)

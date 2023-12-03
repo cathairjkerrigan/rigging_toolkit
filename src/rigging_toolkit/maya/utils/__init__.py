@@ -44,5 +44,5 @@ __all__ = [
     "get_shaders_from_selection",
     "get_shaders_from_mesh",
     "get_shaders_from_meshes",
-    "assign_shader"
-]
+    "assign_shader",
+    ]
