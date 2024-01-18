@@ -163,13 +163,13 @@ def deserialize_control(control_data):
     control_data["curves"] = [Curve(**curve_data) for curve_data in control_data["curves"]]
     return Control(**control_data)
 
-def save_to_json(controls, filename):
+def save_controller(controls, filename=None):
     # type: (List, Path) -> None
     control_list = [Control.from_existing(control) for control in controls]
     with open(str(filename), 'w') as file:
         json.dump([serialize_control(control) for control in control_list], file, indent=4)
 
-def load_from_json(filename):
+def load_controller(filename):
     # type: (Path) -> List[Control]
     with open(str(filename), 'r') as file:
         controls_data = json.load(file)

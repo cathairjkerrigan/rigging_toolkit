@@ -8,7 +8,6 @@ from rigging_toolkit.core.filesystem import has_folders, find_latest
 from pathlib import Path
 from rigging_toolkit.maya.shaders import PBRShader, setup_pbr_textures
 from rigging_toolkit.maya.assets.asset_manager import export_all_character_assets
-from rigging_toolkit.maya.rigging import load_from_json, save_to_json
 import pprint
 from rigging_toolkit.ui.context_ui import ContextUI
 from rigging_toolkit.maya.shaders import export_shaders, setup_shaders
