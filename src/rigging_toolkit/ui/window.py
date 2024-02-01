@@ -42,8 +42,6 @@ class RiggingToolboxWindow(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 
         self.setWindowTitle(self.WINDOW_TITLE)
 
-        self.initial_directory = cmds.internalVar(userPrefDir=True)
-
         self.ignore_list = ["_ignore"]
 
         self._layout = QtWidgets.QVBoxLayout()
@@ -66,7 +64,7 @@ class RiggingToolboxWindow(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 
         self._context = self.context()
 
-    def context(self):#
+    def context(self):
         context = self.context_ui.update_context()
         return context
     

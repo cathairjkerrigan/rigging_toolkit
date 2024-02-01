@@ -4,6 +4,8 @@ from rigging_toolkit.ui.widgets import TabWidget
 from PySide2 import QtWidgets
 from rigging_toolkit.maya.shaders import export_shaders, setup_shaders
 from rigging_toolkit.core.filesystem import has_folders, find_latest
+from rigging_toolkit.maya.utils import create_corrective_delta, deformers_by_type, ls
+from rigging_toolkit.maya.shapes.shape_graph import ShapeGraph
 from maya import cmds
 
 class TestTab(TabWidget):
@@ -36,23 +38,8 @@ class TestTab(TabWidget):
 
     def test_func(self):
 
-        context = self.context
-
-        print(context.character_name)
-        print(context.character_path)
-        print(context.animation_path)
-        print(context.assets_path)
-        print(context.texture_path)
-
-        # for asset in context.assets_path.iterdir():
-        #     path = asset / "meshes"
-        #     name = f"geo_{asset.name}_L1"
-        #     latest, _ = find_latest(path, name, "abc")
-        #     cmds.file(str(latest), i=True, uns=False)
-
-        # setup_shaders(context)
-
-
+        ShapeGraph(self.context)
+        
 
     def test_func_2(self):
         # # ctrls = cmds.ls(sl=1)

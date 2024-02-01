@@ -2,6 +2,7 @@ from maya import cmds
 import logging
 from typing import List, Optional
 from pathlib import Path
+from rigging_toolkit.core.filesystem import find_new_version
 
 TEMPLATE_OFF = 0
 TEMPLATE_ON = 1
@@ -36,6 +37,14 @@ def export_mesh(mesh, path):
     root = get_mesh_path(mesh)
     cmds.AbcExport(
         j=f"-frameRange 1 1 -uvWrite -dataFormat ogawa -root {root} -file {str(path)}"
+    )
+
+def export_versioned_mesh(mesh, folder):
+    # type: (str, Path) -> None
+    root = get_mesh_path(mesh)
+    new_version, _ = find_new_version(folder, mesh, "abc")
+    cmds.AbcExport(
+        j=f"-frameRange 1 1 -uvWrite -dataFormat ogawa -root {root} -file {str(new_version)}"
     )
 
 def get_all_shapes():
@@ -124,4 +133,25 @@ def assign_shader(mesh, shader):
     cmds.hyperShade(assign=shader)
     cmds.select(cl=True)
 
+def get_all_meshes():
+    # type: () -> List[str]
+    all_dag_objs = cmds.ls(dag=True, et="mesh")
+    meshes = []
+    for obj in all_dag_objs:
+        parent = get_parent(obj)
+        if not parent or parent in meshes:
+            continue
+        meshes.append(parent)
+
+    return meshes
+
+def has_uvset(mesh, uvset_name=None):
+    # type: (str, str) -> bool
+    uvsets = cmds.polyUVSet(mesh, query=True, allUVSets=True)
+    has_uvset = uvset_name in uvsets if uvset_name else len(uvsets) > 0
+    return has_uvset
+
+def set_current_uvset(mesh, uvset):
+    # type: (str, str) -> None
+    cmds.polyUVSet(mesh, currentUVSet=True, uvSet=uvset)
         

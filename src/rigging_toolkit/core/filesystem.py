@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Optional, Tuple, List
 import logging
 import re
+from collections import OrderedDict
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,11 @@ def create_path(path):
 def validate_path(path, create_missing=False, raise_error=False):
     # type: (Path, Optional[bool], Optional[bool]) -> Path
     if not path_exists(path):
+        if path is None and raise_error:
+            raise ValueError(f"Cannot Validate Path: {path}")
+        if path is None:
+            if DEBUG: logger.warning(f"Cannot Validate Path: {path}")
+            return None
         if create_missing is True:
             create_path(path)
             return path
@@ -27,7 +33,7 @@ def validate_path(path, create_missing=False, raise_error=False):
         else:
             if DEBUG: logger.warning(f"Cannot Validate Path: {path} does not exist.")
             return None
-    return path
+    return Path(path)
 
 def path_exists(path):
     # type: (Path) -> bool
@@ -120,6 +126,29 @@ def find_latest(folder, versioned_name, extension):
 
     return (latest, latest_version)
 
+def find_all_latest(folder, extension):
+    # type: (Path, Optional[str]) -> List[Path]
+    folder = validate_path(folder)
+    if not folder:
+        return
+
+    all_stems = []
+
+    latest_files = []
+
+    for file in folder.iterdir():
+        if not file.is_file():
+            continue
+        
+        all_stems.append(file.stem.split(".")[0])
+
+    for name in list(OrderedDict.fromkeys(all_stems)):
+        latest_file, _ = find_latest(folder, name, extension)
+        latest_files.append(latest_file)
+
+    return latest_files
+
+
 def find_latest_partial(folder, partial_name, extension):
     # type: (Path, str, str) -> Tuple[Optional[Path], int]
     """Finds the latest file that contains the partial_name and extension."""
@@ -210,3 +239,13 @@ def find_new_version(folder, versioned_name, extension):
     new_path = latest.parent / f"{versioned_name}.v{new_version:03d}.{extension}"
 
     return (new_path, new_version)
+
+def get_files_by_extension(folder, extension):
+    # type: (Path, str) -> List[Path]
+    path = validate_path(folder)
+    if path is None:
+        return None
+    
+    files = list(path.glob(f"*.{extension}"))
+
+    return files

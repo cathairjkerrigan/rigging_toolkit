@@ -87,3 +87,8 @@ def get_shaders_from_selection():
     shaders = cmds.ls(cmds.listConnections(shading_groups),materials=1)
     
     return shaders
+
+def delete_history(selection):
+    # type: (List[str]) -> None
+    for sel in selection:
+        cmds.delete(sel, ch=True)

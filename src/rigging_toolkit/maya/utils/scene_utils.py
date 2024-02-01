@@ -41,13 +41,18 @@ def delete_unknown_nodes():
                 logging.warning("Unknown plugin cannot be removed due to ERROR: {}".format(error))
 
 def import_asset(path):
-    # type: (Path) -> None
-    cmds.file(str(path), i=True, uns=False)
+    # type: (Path) -> List[str]
+    asset = cmds.file(str(path), i=True, uns=False, rnn=True)
+    return asset
 
 def import_assets(paths):
-    # type: (List[Path]) -> None
+    # type: (List[Path]) -> List[str]
+    assets = []
     for path in paths:
-        import_asset(path)
+        asset = import_asset(path)
+        assets.extend(asset)
+
+    return assets
 
 def get_all_transforms():
     # type: () -> List[str]
