@@ -68,7 +68,7 @@ class ShapeGraph(object):
 
         self.load_shapes_from_shapes_folder()
         self.assign_splitting_groups()
-        # self.cleanup()
+        self.cleanup()
 
     def _evaluate_base_shapes(self):
         del self.missing_base_shapes[:]
@@ -292,17 +292,18 @@ class ShapeGraph(object):
         # blendshape.add_blendshape_target(self.split_bs_name, self.splitting_neutral, self.neutral, index=0)
         add_blendshape_target(self.split_blendshape, self.neutral)
         cmds.blendShape(self.split_blendshape, edit=True, w=[(0, 1)])
+        split_target = self.neutral.replace("|", "")
+        cmds.setAttr(f"{self.split_blendshape}.{split_target}", 1)
         print(f"data = {data[shape_splitting_data]}")
         for i in data[shape_splitting_data]:
-            for splitting_group, shapes in i.items():
-                print(splitting_group)
-                if not "_split" in splitting_group:
-                    continue
-                for shape in self.shape_dic["base_shapes"].values():
-                    print("continuing to split")
-                    if shape in shapes:
-                        print("shape in shapes")
-                        self.split_shape(shape, splitting_group)
+            splitting_group, split_values = next(iter(i.items()))
+            print(splitting_group)
+            print(self.shape_dic["base_shapes"].values())
+            shapes = [x.replace("_L1", "") for x in i.get("shapes", [])]
+            for shape in self.shape_dic["base_shapes"].values():
+                if shape in shapes:
+                    print("shape in shapes")
+                    self.split_shape(shape, splitting_group)
 
     def import_splitting_neutral(self):
         latest_splitting_mesh, _ = find_latest(self.context.assets_path / "head" / "meshes", "geo_head_S1", "abc")
@@ -325,16 +326,15 @@ class ShapeGraph(object):
         print(shape)
         print(splitting_group)
         print(match)
-        corrective_matches = [x for x in facial_bs_targets if match[0] in x]
+        corrective_matches = [x for x in facial_bs_targets if match[0].replace("shp_", "").replace("_L1", "") in x]
         print(match)
-        print(corrective_match)
+        print(corrective_matches)
 
         splitting_json, _ = find_latest(self.context.rigs_path / "data", "face_splitter", "json")
         with splitting_json.open() as f:
             data = json.load(f)
 
         mask_splitting_data = list(data.keys())[0]
-        print(mask_splitting_data)
         
         for corrective_match in corrective_matches:
             logger.info('process Shape_Splitting:__{}__'.format(corrective_match))
@@ -349,18 +349,27 @@ class ShapeGraph(object):
             logger.info('{} __splitted__ {}'.format( corrective_match, valid_splitting_groups))
             logger.info('starting:__...__')
             for i in data[mask_splitting_data]:
-                for masks, shapes in i.items():
-                    if not masks.key() == valid_splitting_groups:
-                        print(f"Not this mask group {masks.key()}")
-                        continue
+                splitting_group, masks = next(iter(i.items()))
+                shapes = i.get("shapes", [])
+                
+                if not splitting_group == valid_splitting_groups:
+                    print(f"Not this mask group {splitting_group}")
+                    continue
+                print(f"valid splitting groups: {valid_splitting_groups}\nsplitting group: {splitting_group}")
+                if masks:
                     for mask in masks:
+                        shp = f"{corrective_match}_x{mask}"
+                        if cmds.objExists(shp):
+                            continue
                         mask_path, _ = find_latest(self.context.utilities_path / "masks", f"msk_x{mask}", "wmap")
-                        import_weight_map(self.split_blendshape, mask_path, corrective_match)
+                        full_mask_path, _ = find_latest(self.context.utilities_path / "masks", "msk_xFull", "wmap")
+                        import_weight_map(self.split_blendshape, self.neutral.replace("|", ""), mask_path)
                         logger.info('splitted {} from {}'.format(corrective_match,valid_splitting_groups))
                         logger.info('using the map {}'.format(mask_path))
                         # duplicate the splitted shape
                         cmds.setAttr(f'{self.splitting_neutral}.visibility', 0)
-                        split_target = cmds.duplicate(self.splitting_neutral, n='{}_L1_{}'.format(corrective_match, str(mask)))[0]               
+                        split_target = cmds.duplicate(self.splitting_neutral, n=shp)[0]
+                        import_weight_map(self.split_blendshape, self.neutral.replace("|", ""), full_mask_path)
                         if 'delta_' in split_target:
                             cmds.parent(split_target, self.splitted_face_corrective_blendshapes_grp)
                             logger.info('finished splitting:__{}__'.format(split_target))
@@ -369,13 +378,26 @@ class ShapeGraph(object):
                             cmds.parent(split_target, self.splitted_face_blendshapes_grp)
                             logger.info('finished splitting:__{}__'.format(split_target))
                             logger.info('__...__')
+                elif splitting_group == "full_split" and not masks:
+                    shp = f"{corrective_match}_xFullShape"
+                    if cmds.objExists(shp):
+                        continue
+                    split_target = cmds.duplicate(self.splitting_neutral, n='{}_xFullShape'.format(corrective_match))[0]
+                    if 'delta_' in split_target:
+                            cmds.parent(split_target, self.splitted_face_corrective_blendshapes_grp)
+                            logger.info('finished splitting:__{}__'.format(split_target))
+                            logger.info('__...__')
+                    else:
+                        cmds.parent(split_target, self.splitted_face_blendshapes_grp)
+                        logger.info('finished splitting:__{}__'.format(split_target))
+                        logger.info('__...__')
 
             for target in facial_bs_targets:
                 cmds.setAttr('{}.{}'.format(self.blendshape, target), 0)
 
     def get_corrective_shape_splitting_group(self, shape, splitting_group):
         
-        corrective_components = re.findall(r'_(\d+|[A-Za-z]+(?:_[A-Za-z]+)*)', shape)
+        corrective_components = re.findall(r'_(\d+|[A-Za-z]+(?:_[A-Za-z]+)*)', shape.replace("shp_", "").replace("_L1", ""))
         
         if len(corrective_components) <= 1:
             return splitting_group
@@ -394,50 +416,66 @@ class ShapeGraph(object):
             four_split = []
             full_shapes = []
 
+            print("corrective components...")
+            print(corrective_components)
+
             for i in data[shape_splitting_data]:
-                for splits, shapes in i.items():
-                    if splits == "vertical_split":
-                        vertical_split = vertical_split.extend([x for x in corrective_components if f"shp_{x}_L1" in shapes])
-                    if splits == "horizontal_split":
-                        horizontal_split = horizontal_split.extend([x for x in corrective_components if f"shp_{x}_L1" in shapes])
-                    if splits == "four_split":
-                        four_split = four_split.extend([x for x in corrective_components if f"shp_{x}_L1" in shapes])
+                splitting_group, splits = next(iter(i.items()))
+                print(splitting_group)
+                shapes = i.get("shapes", [])
+                print(shapes)
+                print([x for x in corrective_components if f"shp_{x}_L1" in shapes])
+                
+                if splitting_group == "vertical_split":
+                    vertical_split.extend([x for x in corrective_components if f"shp_{x}_L1" in shapes])
+                    print(vertical_split)
+                if splitting_group == "horizontal_split":
+                    horizontal_split.extend([x for x in corrective_components if f"shp_{x}_L1" in shapes])
+                    print(horizontal_split)
+                if splitting_group == "four_split":
+                    four_split.extend([x for x in corrective_components if f"shp_{x}_L1" in shapes])
+                    print(four_split)
 
-            for corrective_component in corrective_components:
-                if corrective_component in vertical_split:
-                    continue
-                if corrective_component in horizontal_split:
-                    continue
-                if corrective_component in four_split:
-                    continue 
+            print(vertical_split)
+            print(horizontal_split)
+            print(four_split)
 
-                full_shapes.append(corrective_component)
+
+            if vertical_split and any(x in vertical_split for x in corrective_components):
+                return "vertical_split"
+            elif four_split and any(x in four_split for x in corrective_components):
+                return "four_split" 
+            elif horizontal_split and any(x in horizontal_split for x in corrective_components):
+                return "horizontal_split" 
+            else:  
+                return "full_split"
+                # full_shapes.append(corrective_component)
            
-            # asigns the splitting group if the number of components matches the number of shapes in the vertical_split
-            if len(corrective_components) == len(vertical_split):
-                return splitting_group
+            # # asigns the splitting group if the number of components matches the number of shapes in the vertical_split
+            # if len(corrective_components) == len(vertical_split):
+            #     return splitting_group
             
-            # asigns the splitting group if the number of components matches the number of shapes in the horizontal_split
-            if len(corrective_components) == len(horizontal_split):
-                return splitting_group
+            # # asigns the splitting group if the number of components matches the number of shapes in the horizontal_split
+            # if len(corrective_components) == len(horizontal_split):
+            #     return splitting_group
             
-            # asigns the splitting group if the number of components matches the number of shapes in the horizontal_split and vertical_split
-            if len(horizontal_split) + len(vertical_split) == len(corrective_components):
-                splitting_group = 'vertical_split'
-                return splitting_group
+            # # asigns the splitting group if the number of components matches the number of shapes in the horizontal_split and vertical_split
+            # if len(horizontal_split) + len(vertical_split) == len(corrective_components):
+            #     splitting_group = 'vertical_split'
+            #     return splitting_group
             
-            # asigns the splitting group if the number of components matches the number of shapes in the full_shapes and vertical_split
-            if len(full_shapes) + len(vertical_split) == len(corrective_components):
-                splitting_group = 'vertical_split'
-                return splitting_group
+            # # asigns the splitting group if the number of components matches the number of shapes in the full_shapes and vertical_split
+            # if len(full_shapes) + len(vertical_split) == len(corrective_components):
+            #     splitting_group = 'vertical_split'
+            #     return splitting_group
             
-            # asigns the splitting group if the number of components matches the number of shapes in the four_split
-            elif len(four_split) >= 1:
-                splitting_group = 'four_split'
-                return splitting_group
+            # # asigns the splitting group if the number of components matches the number of shapes in the four_split
+            # elif len(four_split) >= 1:
+            #     splitting_group = 'four_split'
+            #     return splitting_group
             
-            else:
-                return splitting_group
+            # else:
+            #     return splitting_group
             
     def create_facial_bs_expression(self, bs_node, target):
 
@@ -537,18 +575,19 @@ class ShapeGraph(object):
         base_shapes = cmds.listRelatives(self.splitted_face_blendshapes_grp)
         base_shapes = sorted(base_shapes)
         for target in base_shapes:
-            target = f"{target}_L1"
+            target = f"{target}"
             if target == self.splitted_face_corrective_blendshapes_grp:
                 pass
             else:
                 add_blendshape_target(self.blendshape, target)
         
-        facial_bs_targets = cmds.listAttr(self.blendshape[0] + '.w', m=1)
+        facial_bs_targets = list_shapes(self.blendshape)
         target_len = len(facial_bs_targets)
         corrective_shapes = cmds.listRelatives(self.splitted_face_corrective_blendshapes_grp)
         for target in corrective_shapes:
-            target = f"{target}_L1"
-            add_blendshape_target(self.blendshape, target)
+            if target not in list_shapes(self.blendshape):
+                target = f"{target}"
+                add_blendshape_target(self.blendshape, target)
             
         # delete the shapes folder for the split shapes
         if cmds.objExists(self.splitted_face_blendshapes_grp):
