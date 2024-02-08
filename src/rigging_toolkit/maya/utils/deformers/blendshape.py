@@ -10,6 +10,7 @@ from rigging_toolkit.maya.utils.delta import ExtractCorrectiveDelta
 from pathlib import Path
 import json
 import logging
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -349,7 +350,7 @@ def get_adjusted_weight_maps(blendshape_name):
         values = cmds.getAttr(
             f"{blendshape_name}.inputTarget[0].inputTargetGroup[{shape_idx}].targetWeights[0:{vertex_count-1}]"
         )
-        if all(i == 1 for i in values):
+        if np.all(np.array(values) == 1):
             continue
         weight_maps.append(shape_name)
     return weight_maps
@@ -490,5 +491,5 @@ def create_corrective_delta(blendshape, full_shapes, corrective):
 
     cmds.rename(extracted_delta, corrective)
 
-    return delta
+    # return delta
 

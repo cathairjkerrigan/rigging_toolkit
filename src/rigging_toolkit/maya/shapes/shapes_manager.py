@@ -27,11 +27,14 @@ def export_shapes(context, split_type=None):
         
         export_versioned_mesh(shape, shp_folder)
 
-def import_shapes(context):
-    # type: (Context) -> List[str]
+def import_shapes(context, ignore_list=None):
+    # type: (Context, Optional[List]) -> List[str]
     shapes = []
-    grp = cmds.createNode("transform", "full_shapes_GRP")
+    grp = cmds.createNode("transform", n="full_shapes_GRP")
     for shp_path in context.shapes_path.iterdir():
+        if ignore_list is not None and shp_path.stem in ignore_list:
+            logger.warning(f"Ignoring {shp_path.stem} for import...")
+            continue
         latest, _ = find_latest(shp_path, shp_path.stem,  "abc")
         shp = import_asset(latest)[0]
         cmds.parent(shp, grp)

@@ -4,7 +4,7 @@ from rigging_toolkit.ui.widgets import TabWidget
 from PySide2 import QtWidgets
 from rigging_toolkit.maya.shaders import export_selected_shaders, setup_shaders
 from rigging_toolkit.maya.assets import export_all_character_assets, import_character_assets, export_selected_character_assets
-from rigging_toolkit.maya.shapes import export_shapes
+from rigging_toolkit.maya.shapes import export_shapes, import_shapes
 from rigging_toolkit.ui.dialogs import WeightMapTool
 from rigging_toolkit.ui.widgets import MultiMessageBox
 from rigging_toolkit.maya.utils import deformers_by_type, list_shapes, ls, reset_blendshape_targets, export_blendshape_targets
@@ -80,13 +80,13 @@ class AssetsTab(TabWidget):
         self._export_shapes_button = QtWidgets.QPushButton("Export Shapes")
         self._export_shapes_button.clicked.connect(self._on_export_shapes_clicked)
 
-        self._export_split_shapes_button = QtWidgets.QPushButton("Export Split Shapes")
-        self._export_split_shapes_button.clicked.connect(self._on_export_split_shapes_clicked)
+        self._import_shapes_button = QtWidgets.QPushButton("Import Shapes")
+        self._import_shapes_button.clicked.connect(self._on_import_shapes_clicked)
 
         self._shape_utils_layout.addWidget(self._list_shapes_button, 0, 0)
         self._shape_utils_layout.addWidget(self._reset_shapes_button, 0, 1)
-        self._shape_utils_layout.addWidget(self._export_shapes_button, 1, 0)
-        self._shape_utils_layout.addWidget(self._export_split_shapes_button, 1, 1)
+        self._shape_utils_layout.addWidget(self._export_shapes_button, 1, 1)
+        self._shape_utils_layout.addWidget(self._import_shapes_button, 1, 0)
 
         self._weight_map_layout = QtWidgets.QHBoxLayout()
     
@@ -195,7 +195,6 @@ class AssetsTab(TabWidget):
         
         export_shapes(self.context, split_type=export_type)
 
-    def _on_export_split_shapes_clicked(self):
+    def _on_import_shapes_clicked(self):
         # type: () -> None
-        logger.warning("Export Split Shapes is currently not supported, need to add logic")
-        pass
+        import_shapes(self.context, ignore_list=["_archive"])

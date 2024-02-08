@@ -42,7 +42,7 @@ class ShapeGraph(object):
         cmds.parent(self.splitted_face_corrective_blendshapes_grp, self.splitted_face_blendshapes_grp)
 
         self.retrieve_shapes()
-        # self.connect_expression()
+        self.connect_expression()
         self.disable_viewport(disable_viewport=False)
 
     def retrieve_shapes(self):
@@ -77,8 +77,7 @@ class ShapeGraph(object):
         for shape in self.shape_dic["combo_shapes"].values():
             # find all the components in the combo shapes
             
-            # have to change regex to include lettes aswell          
-            combo_component = re.findall(r'_(\d+|[A-Za-z]+(?:_[A-Za-z]+)*)', shape)
+            combo_component = self.get_shape_components(shape)
             for component in combo_component:
                 component = 'shp_{}'.format(component)
                 if component in self.shape_dic["base_shapes"].values():
@@ -95,8 +94,8 @@ class ShapeGraph(object):
 
     def _find_graph_children(self):
         
-        for shape in self.shape_dic["combo_shapes"].values():                         
-            child_shape_components = re.findall(r'_(\d+|[A-Za-z]+(?:_[A-Za-z]+)*)', shape)
+        for shape in self.shape_dic["combo_shapes"].values():     
+            child_shape_components = self.get_shape_components(shape)
             
             for component in child_shape_components:
                 shp_component = 'shp_{}'.format(component)
@@ -143,7 +142,7 @@ class ShapeGraph(object):
     
     def analyse_shape(self, shape):
         
-        result = re.findall(r'_(\d+|[A-Za-z]+(?:_[A-Za-z]+)*)', shape)
+        result = self.get_shape_components(shape)
                
         if len(result) == 1:
             self.shape_dic["base_shapes"].update({"base_shape_{}".format(shape):shape})
@@ -192,7 +191,7 @@ class ShapeGraph(object):
             cmds.parent(f"{shp}_L1", self.full_shapes_grp)
 
         for _combo_shp, combo_shp in self.shape_dic["combo_shapes"].items():
-            child_components = re.findall(r'_(\d+|[A-Za-z]+(?:_[A-Za-z]+)*)', combo_shp)
+            child_components = self.get_shape_components(combo_shp)
             pattern = [c for c in child_components if 'shp_{}'.format(c) in self.missing_base_shapes]
             if pattern:
                 pass
@@ -245,7 +244,7 @@ class ShapeGraph(object):
                 elif len(self.combo_shape_dic["corrective_shapes"][key]) > 2:
 
                     for corrective_shape in (self.combo_shape_dic["corrective_shapes"][key]):
-                        component = re.findall(r'_(\d+|[A-Za-z]+(?:_[A-Za-z]+)*)', corrective_shape)
+                        component = self.get_shape_components(corrective_shape)
                         if len(component) == 1:
                             # this handles all the core shapes
                             cmds.setAttr("{}.{}".format(self.delta_bs_name, f"{key}_L1"), 1)
@@ -397,58 +396,52 @@ class ShapeGraph(object):
 
     def get_corrective_shape_splitting_group(self, shape, splitting_group):
         
-        corrective_components = re.findall(r'_(\d+|[A-Za-z]+(?:_[A-Za-z]+)*)', shape.replace("shp_", "").replace("_L1", ""))
+        corrective_components = self.get_shape_components(shape)
+        splitting_json, _ = find_latest(self.context.rigs_path / "data", "face_splitter", "json")
+        with splitting_json.open() as f:
+            data = json.load(f)
         
-        if len(corrective_components) <= 1:
-            return splitting_group
+        shape_splitting_data = list(data.keys())[0]
         
-        else:            
+        # finds all the shapes matching the same splitting group
+        vertical_split = []
+        horizontal_split = []
+        four_split = []
+        full_shapes = []
+
+        print("corrective components...")
+        print(corrective_components)
+
+        for i in data[shape_splitting_data]:
+            splitting_group, splits = next(iter(i.items()))
+            print(splitting_group)
+            shapes = i.get("shapes", [])
+            print(shapes)
+            print([x for x in corrective_components if f"shp_{x}_L1" in shapes])
             
-            splitting_json, _ = find_latest(self.context.rigs_path / "data", "face_splitter", "json")
-            with splitting_json.open() as f:
-                data = json.load(f)
-            
-            shape_splitting_data = list(data.keys())[0]
-            
-            # finds all the shapes matching the same splitting group
-            vertical_split = []
-            horizontal_split = []
-            four_split = []
-            full_shapes = []
+            if splitting_group == "vertical_split":
+                vertical_split.extend([x for x in corrective_components if f"shp_{x}_L1" in shapes])
+                print(vertical_split)
+            if splitting_group == "horizontal_split":
+                horizontal_split.extend([x for x in corrective_components if f"shp_{x}_L1" in shapes])
+                print(horizontal_split)
+            if splitting_group == "four_split":
+                four_split.extend([x for x in corrective_components if f"shp_{x}_L1" in shapes])
+                print(four_split)
 
-            print("corrective components...")
-            print(corrective_components)
-
-            for i in data[shape_splitting_data]:
-                splitting_group, splits = next(iter(i.items()))
-                print(splitting_group)
-                shapes = i.get("shapes", [])
-                print(shapes)
-                print([x for x in corrective_components if f"shp_{x}_L1" in shapes])
-                
-                if splitting_group == "vertical_split":
-                    vertical_split.extend([x for x in corrective_components if f"shp_{x}_L1" in shapes])
-                    print(vertical_split)
-                if splitting_group == "horizontal_split":
-                    horizontal_split.extend([x for x in corrective_components if f"shp_{x}_L1" in shapes])
-                    print(horizontal_split)
-                if splitting_group == "four_split":
-                    four_split.extend([x for x in corrective_components if f"shp_{x}_L1" in shapes])
-                    print(four_split)
-
-            print(vertical_split)
-            print(horizontal_split)
-            print(four_split)
+        print(vertical_split)
+        print(horizontal_split)
+        print(four_split)
 
 
-            if vertical_split and any(x in vertical_split for x in corrective_components):
-                return "vertical_split"
-            elif four_split and any(x in four_split for x in corrective_components):
-                return "four_split" 
-            elif horizontal_split and any(x in horizontal_split for x in corrective_components):
-                return "horizontal_split" 
-            else:  
-                return "full_split"
+        if vertical_split and any(x in vertical_split for x in corrective_components):
+            return "vertical_split"
+        elif four_split and any(x in four_split for x in corrective_components):
+            return "four_split" 
+        elif horizontal_split and any(x in horizontal_split for x in corrective_components):
+            return "horizontal_split" 
+        else:  
+            return "full_split"
                 # full_shapes.append(corrective_component)
            
             # # asigns the splitting group if the number of components matches the number of shapes in the vertical_split
@@ -478,62 +471,136 @@ class ShapeGraph(object):
             #     return splitting_group
             
     def create_facial_bs_expression(self, bs_node, target):
+        
+        shapes = self.get_shape_components(target)
+        print(f"original shp components: {shapes}")
+        # safely to remove any _xSplit's left over in our corrective components
+        corrective_split_type = target.split("_")[-1]
+        final_shapes = set()
 
-        corrective_shp_components = re.findall(r'_(\d+|[A-Za-z]+(?:_[A-Za-z]+)*)', target)
-        expression_driver_components = []
-        splitting_type = target.split('_')[-1]
-        for shape_split_type in self.expression_component_list:
-            
-            result = [x for x in shape_split_type for y in corrective_shp_components if y in x ]
-            expression_driver_components.extend(result)
 
-        expression_driver_components_side = []
-        for component in expression_driver_components:
-
-            component_side = component.split('_')[-1]
-
-            if component_side == splitting_type:
-                expression_driver_components_side.append(component)
-            elif 'Center' in component:
-                if "30L" in component:
-                    if  "Left" in target and "30L" in target and "30R" not in target:
-                        expression_driver_components_side.append(component)
-                    elif "Right" in target and "30L" in target and "30R" not in target:
-                        expression_driver_components_side.append(component)
-                elif "30R" in component:
-                    if  "Left" in target and "30R" in target and "30L" not in target:
-                        expression_driver_components_side.append(component)
-                    elif "Right" in target and "30R" in target and "30L" not in target:
-                        expression_driver_components_side.append(component)
-                else:
-                    if not "30" in component:                     
-                        expression_driver_components_side.append(component)
-            
-            elif 'Top' in component:
-                expression_driver_components_side.append(component)                
-            elif 'Bottom' in component:
-                expression_driver_components_side.append(component)
-            
-            else:
+        for shp in shapes:
+            shp_name = f"shp_{shp}_L1"
+            print(f"shape name: {shp_name}")
+            split_types = self.get_shape_split_types(shp_name)
+            print(f"split types: {split_types}")
+            if not split_types or shapes == []:
+                final_shapes.add(f"{shp_name}_xFullShape")
                 continue
-            
-        component_side = target.split('_')[-1]
-        component_side_parts = re.findall(r"[A-Z][^A-Z]*", component_side)
+            split_type = [x for x in split_types if x in corrective_split_type][0]
+            print(f"split type: {split_type}")
+            final_shapes.add(f"{shp_name}_x{split_type}")
 
+        print(final_shapes)
         
-        if len(component_side_parts) > 1:
-            matches = [item for item in expression_driver_components if component_side_parts[1] in item.split('_')]                
-            expression_driver_components_side.extend(matches)
-        
-        self.remove_duplicates_from_list(expression_driver_components_side)
-        
-        shp_expression = [os.path.join(bs_node, shp) for shp in expression_driver_components_side]
+
+        shp_expression = [os.path.join(bs_node, shp) for shp in list(final_shapes)]
         shp_expression = [shp.replace('\\', '.') for shp in shp_expression]
         shp_expression='*'.join(shp_expression)          
         facial_bs_exp = cmds.expression(name='{}_exp'.format(target),  s='{}.{}={}'.format(bs_node, target, shp_expression))
         cmds.connectAttr('{}.output[0]'.format(facial_bs_exp), '{}.isHistoricallyInteresting'.format(facial_bs_exp), force=1)
         logger.info(facial_bs_exp)
+
+
+        # print(corrective_shp_components)
+        # expression_driver_components = []
+        # splitting_type = target.split('_')[-1]
+        # print(splitting_type)
+        # print(self.expression_component_list)
+
+        # for shape_split_type in self.expression_component_list:
+        #     result = [x for x in shape_split_type for y in corrective_shp_components if y in x ]
+        #     expression_driver_components.extend(result)
+
+        # expression_driver_components_side = []
+        # for component in expression_driver_components:
+
+        #     component_side = component.split('_')[-1]
+
+        #     if component_side == splitting_type:
+        #         expression_driver_components_side.append(component)
+        #     elif 'Center' in component:
+        #         if "30L" in component:
+        #             if  "Left" in target and "30L" in target and "30R" not in target:
+        #                 expression_driver_components_side.append(component)
+        #             elif "Right" in target and "30L" in target and "30R" not in target:
+        #                 expression_driver_components_side.append(component)
+        #         elif "30R" in component:
+        #             if  "Left" in target and "30R" in target and "30L" not in target:
+        #                 expression_driver_components_side.append(component)
+        #             elif "Right" in target and "30R" in target and "30L" not in target:
+        #                 expression_driver_components_side.append(component)
+        #         else:
+        #             if not "30" in component:                     
+        #                 expression_driver_components_side.append(component)
+            
+        #     elif 'Top' in component:
+        #         expression_driver_components_side.append(component)                
+        #     elif 'Bottom' in component:
+        #         expression_driver_components_side.append(component)
+            
+        #     else:
+        #         continue
+            
+        # component_side = target.split('_')[-1]
+        # component_side_parts = re.findall(r"[A-Z][^A-Z]*", component_side)
+
         
+        # if len(component_side_parts) > 1:
+        #     matches = [item for item in expression_driver_components if component_side_parts[1] in item.split('_')]                
+        #     expression_driver_components_side.extend(matches)
+        
+        # self.remove_duplicates_from_list(expression_driver_components_side)
+        
+        # shp_expression = [os.path.join(bs_node, shp) for shp in expression_driver_components_side]
+        # shp_expression = [shp.replace('\\', '.') for shp in shp_expression]
+        # shp_expression='*'.join(shp_expression)          
+        # facial_bs_exp = cmds.expression(name='{}_exp'.format(target),  s='{}.{}={}'.format(bs_node, target, shp_expression))
+        # cmds.connectAttr('{}.output[0]'.format(facial_bs_exp), '{}.isHistoricallyInteresting'.format(facial_bs_exp), force=1)
+        # logger.info(facial_bs_exp)
+
+    def remove_patterns(self, input_string):
+        patterns_to_remove = ['delta_', '_x.*', 'shp_', '_L1']
+        for pattern in patterns_to_remove:
+            input_string = re.sub(pattern, '', input_string)
+        return input_string
+    
+    def get_shape_components(self, shape):
+        shape_name = self.remove_patterns(shape)
+        components = re.findall(r'(\d+|[A-Za-z]+(?:_[A-Za-z]+)*)', shape_name)
+
+        # this regex currently doesn't support shapes that contain a side
+        # must update at some point
+        if all(component in components for component in ["14", "L", "18"]):
+            components.append("14L18")
+            components = [x for x in components if x not in ["14", "L", "18"]]
+            
+        if all(component in components for component in ["14", "R", "18"]):
+            components.append("14R18")
+            components = [x for x in components if x not in ["14", "R", "18"]]
+
+        if all(component in components for component in ["30", "L"]):
+            components.append("30L")
+            components = [x for x in components if x not in ["30", "L"]]
+            
+        if all(component in components for component in ["30", "R"]):
+            components.append("30R")
+            components = [x for x in components if x not in ["30", "R"]]
+
+        return components
+        
+    def get_shape_split_types(self, shape_name):
+        splitting_json, _ = find_latest(self.context.rigs_path / "data", "face_splitter", "json")
+        with splitting_json.open() as f:
+            data = json.load(f)
+
+        shape_splitting_data = list(data.keys())[0]
+        for i in data[shape_splitting_data]:
+            splitting_group, masks = next(iter(i.items()))
+            shapes = i.get("shapes", [])
+            if not shape_name in shapes:
+                continue
+            return masks
             
     def connect_expression(self):
         
@@ -545,17 +612,12 @@ class ShapeGraph(object):
         with splitting_json.open() as f:
             data = json.load(f)
                
-        splitting_data_shapes = list(data.keys())[0]
-        print(splitting_data_shapes)
-        print(type(splitting_data_shapes))
-        for i in data[splitting_data_shapes]:
-            print(i)
-            print(type(i))
-            for splitting_type, shapes in i.items():
-                print(splitting_type)
-                print(shapes)
-                result = [x for x in base_shapes for y in shapes if y in x]
-                self.expression_component_list.append(result)          
+        shape_splitting_data = list(data.keys())[0]
+        for i in data[shape_splitting_data]:
+            splitting_group, splits = next(iter(i.items()))
+            shapes = i.get("shapes", [])
+            result = [x for x in base_shapes for y in splits if y in x]
+            self.expression_component_list.append(result)          
        
         for cor_shp in corrective_shapes:
             self.create_facial_bs_expression(self.blendshape, cor_shp)
