@@ -2,18 +2,31 @@ from maya import cmds
 from typing import Optional, List, Dict, Generator
 from rigging_toolkit.core.context import Context
 from rigging_toolkit.core.filesystem import find_latest, find_new_version, validate_path
-from rigging_toolkit.maya.utils import export_blendshape_targets, ls, export_versioned_mesh, import_asset, ExtractCorrectiveDelta
+from rigging_toolkit.maya.utils import export_blendshape_targets, ls, export_versioned_mesh, import_asset, ExtractCorrectiveDelta, ls_all
 import json
 import logging
 from copy import copy
 from .splitter import Splitter
 from .base import Plug, ConnectTypes, Socket
 from contextlib import contextmanager
+import re
 
 
 logger = logging.getLogger(__name__)
 
-def export_shapes(context, split_type=None):
+def export_shapes(context):
+    # type: (Context) -> None
+    pattern = re.compile(r'^shp_.*L\d+$')
+
+    shapes = [element for element in ls_all() if pattern.match(element)]
+
+    for shape in shapes:
+
+        shp_folder = validate_path(context.shapes_path / shape, create_missing=True)
+        
+        export_versioned_mesh(shape, shp_folder)
+
+def export_blendshapes(context, split_type=None):
     # type: (Context, Optional[str]) -> None
     mesh = ls()
     if not mesh:

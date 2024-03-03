@@ -2,7 +2,7 @@ from PySide2 import QtWidgets, QtGui
 from rigging_toolkit.core import Context, validate_path
 import logging
 from typing import Optional
-from rigging_toolkit.ui.tabs.weight_maps import ExportWeightMapTab, ImportWeightMapTab, NormalizeWeightMapTab
+from rigging_toolkit.ui.tabs.weight_maps import ExportWeightMapTab, ImportWeightMapTab, WeightMapUtilsTab
 from rigging_toolkit.ui.widgets import TabWidget
 from rigging_toolkit.maya.utils import get_all_blendshapes
 
@@ -34,6 +34,7 @@ class WeightMapTool(QtWidgets.QDialog):
         self._dir_lineedit.setText(str(self._initial_directory))
         self._dir_pushbutton = QtWidgets.QPushButton()
         self._dir_pushbutton.setIcon(QtGui.QIcon(":fileOpen.png"))
+        self._refresh_pushbutton = QtWidgets.QPushButton("Refresh")
 
         self._button_layout.addWidget(self._dir_label, 0, 0)
         self._button_layout.addWidget(self._dir_lineedit, 0, 1)
@@ -41,10 +42,10 @@ class WeightMapTool(QtWidgets.QDialog):
 
         self._blendshape_label = QtWidgets.QLabel("Blendshape: ")
         self._blendshape_combobox = QtWidgets.QComboBox()
-        self.populate_blendshape_combobox()
 
         self._button_layout.addWidget(self._blendshape_label, 1, 0)
-        self._button_layout.addWidget(self._blendshape_combobox, 1, 2)
+        self._button_layout.addWidget(self._blendshape_combobox, 1, 1)
+        self._button_layout.addWidget(self._refresh_pushbutton, 1, 2)
 
         self._layout.addLayout(self._button_layout)
 
@@ -58,13 +59,14 @@ class WeightMapTool(QtWidgets.QDialog):
         self.add_tab(self._tab_widget, self._import_weights_tab)
         self._export_weights_tab.EXPORT_SIGNAL.connect(self._import_weights_tab._populate_map_list_widget)
 
-        self._normalize_weights_tab = NormalizeWeightMapTab()
+        self._normalize_weights_tab = WeightMapUtilsTab()
         self.add_tab(self._tab_widget, self._normalize_weights_tab)
 
         self._import_weights_tab.IMPORT_SIGNAL.connect(self._export_weights_tab._populate_list_widget)
         self._import_weights_tab.IMPORT_SIGNAL.connect(self._normalize_weights_tab._populate_list_widget)
+        self._refresh_pushbutton.clicked.connect(self.populate_blendshape_combobox)
 
-        self.update_children_combobox()
+        self.populate_blendshape_combobox()
         self.update_children_file_path()
 
     def add_tab(self, tab_widget, child_widget):
@@ -102,4 +104,5 @@ class WeightMapTool(QtWidgets.QDialog):
         # type: () -> None
         blendshapes = get_all_blendshapes()
         self._blendshape_combobox.addItems(blendshapes)
+        self.update_children_combobox()
 

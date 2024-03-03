@@ -1,7 +1,9 @@
 import maya.api.OpenMaya as om2
 from maya import cmds
-from typing import Optional
+from typing import Optional, Union, List, Text
 from .general import deformers_by_type
+from pathlib import Path
+from xml.etree import ElementTree
 
 import logging
 
@@ -107,3 +109,116 @@ def prune_influences(meshes, max_influence=8):
                 logger.info(prune_value)
 
                 cmds.skinPercent(skin, vtx, pruneWeights=prune_value)
+
+def export_skin_weights(mesh, path):
+    # type: (str, Union[str, Path]) -> Path
+    weights_path = Path(path)
+    logger.info(f"Exporting weights from {mesh} to {str(weights_path)}")
+
+    skin_clusters = deformers_by_type(mesh, "skinCluster")
+    if not skin_clusters:
+        logger.warning(
+            f"No skinCluster found on {mesh}, cannot export weights."
+        )
+        return
+    
+    weights_folder = str(weights_path.parent)
+
+    cmds.deformerWeights(
+        weights_path.name, path=weights_folder, ex=True, deformer=skin_clusters[0]
+    )
+
+def bind_skin(mesh, joints):
+    # type: (Text, List[Text]) -> Text
+    """Bind the mesh to the joints"""
+
+    existing_joints = [j for j in joints if cmds.objExists(j)]
+
+    missing_joints = list(set(existing_joints) - set(joints))
+    if missing_joints:
+        logger.warning(
+            "These joints were not found in the scene and have not "
+            f"been added to the skincluster: {missing_joints}"
+        )
+
+    skin_cluster = cmds.skinCluster(
+        existing_joints,
+        mesh,
+        toSelectedBones=True,
+        bindMethod=0,
+        skinMethod=0,
+        normalizeWeights=1,
+    )  # type: List[Text]
+
+    return skin_cluster[0]
+
+def import_skin_weights(mesh, weights_path):
+    # type: (str, Path) -> None
+    """Import the maya skin weights on the mesh.
+
+    This will automatically bind the mesh to the relevant joints if it has no skincluster.
+    """
+
+    logger.info(f"Importing maya weights for {mesh} from {weights_path}")
+
+    weights_dir = str(weights_path.parent)
+    weights_file = weights_path.name
+
+    skin_cluster = get_skin_cluster(mesh)
+    if not skin_cluster:
+        joints = joints_from_weights(weights_path)
+        skin_cluster = bind_skin(mesh, joints)
+
+    cmds.deformerWeights(
+        weights_file, im=True, method="index", deformer=skin_cluster, path=weights_dir
+    )
+    cmds.skinCluster(skin_cluster, edit=True, forceNormalizeWeights=True)
+
+def joints_from_weights(weights_path):
+    # type: (Path) -> List[str]
+    """List the joints used in an maya skin weights file."""
+    joints = []
+    tree = ElementTree.parse(str(weights_path))
+    root = tree.getroot()
+    for element in root:
+        joint = element.attrib.get("source")
+        if joint:
+            joints.append(joint)
+    return joints
+
+def transfer_skin_cluster(source_mesh, target_mesh):
+    # type: (str, str) -> None
+    """Transfer the skin weights from the source to the target.
+
+    If the target mesh isn't bound, it will be bound to the joints deforming the source mesh.
+    If the target mesh is missing some joints from the source mesh, they will automatically be added.
+    """
+    source_skin_cluster = get_skin_cluster(source_mesh)
+
+    if not source_skin_cluster:
+        raise RuntimeError("Source mesh has no skin cluster attached.")
+
+    source_joints = cmds.skinCluster(source_skin_cluster, query=True, influence=True)
+
+    target_skin_cluster = get_skin_cluster(target_mesh)
+
+    if not target_skin_cluster:
+        target_skin_cluster = bind_skin(target_mesh, source_joints)
+    else:
+        # make sure all the source joints are in the target skin cluster
+        target_joints = cmds.skinCluster(
+            target_skin_cluster, query=True, influence=True
+        )
+        for joint in source_joints:
+            if joint not in target_joints:
+                cmds.skinCluster(
+                    target_skin_cluster, edit=True, addInfluence=joint, weight=0.0
+                )
+
+    cmds.copySkinWeights(
+        sourceSkin=source_skin_cluster,
+        destinationSkin=target_skin_cluster,
+        noMirror=True,
+        surfaceAssociation="closestPoint",
+        influenceAssociation="closestJoint",
+    )

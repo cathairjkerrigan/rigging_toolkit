@@ -39,11 +39,7 @@ def path_exists(path):
     # type: (Path) -> bool
     if path is None:
         return False
-    check_path = Path(path)
-    if not check_path.exists():
-        return False
-    else:
-        return True
+    return Path(path).exists()
 
 def has_folders(path):
     # type: (Path) -> bool

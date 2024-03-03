@@ -92,3 +92,47 @@ def delete_history(selection):
     # type: (List[str]) -> None
     for sel in selection:
         cmds.delete(sel, ch=True)
+
+def parent_shapes(selection):
+    shapes = []
+    transforms_to_delete = []
+    if not all(x for x in selection if cmds.objectType(x, isType="transform")):
+        return
+    for sel in selection[1:]:
+        shp = cmds.listRelatives(sel, s=True)
+        shapes.extend(shp)
+        transforms_to_delete.append(sel)
+    cmds.parent(shapes, selection[0], r=True, s=True)
+    cmds.delete(transforms_to_delete)
+    cmds.select(cl=1)
+
+def set_shapes_reference_display(selection):
+    for i in selection:
+        shapes = cmds.listRelatives(i, s=True, c=True)
+        for shp in shapes:
+            cmds.setAttr(f"{shp}.overrideEnabled", 1)
+            cmds.setAttr(f"{shp}.overrideDisplayType", 2)
+
+def ls_transforms():
+    # type: () -> List[str]
+    return cmds.ls(sl=1, tr=1)
+
+def ls_meshes():
+    # type: () -> List[str]
+    all_selected_transforms = ls_transforms()
+    return [x for x in all_selected_transforms if cmds.listRelatives(x, s=True)]
+
+def ls_shapes():
+    # type: () -> List[str]
+    shapes = []
+    for x in ls():
+        shps = cmds.listRelatives(x, s=True)
+        shapes.extend(shps)
+
+def ls_joints():
+    # type: () -> List[str]
+    return cmds.ls(sl=1, et="joint")
+
+def ls_all():
+    # type: () -> List[str]
+    return cmds.ls()

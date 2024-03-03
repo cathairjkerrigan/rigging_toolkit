@@ -5,7 +5,7 @@ from rigging_toolkit.maya.utils.deformers.general import deformers_by_type
 from rigging_toolkit.maya.utils.delta import Delta
 from rigging_toolkit.maya.utils.weightmap import WeightMap
 from rigging_toolkit.core.filesystem import find_new_version
-from rigging_toolkit.maya.utils.mesh_utils import get_all_meshes
+from rigging_toolkit.maya.utils.mesh_utils import get_all_meshes, mirror_vertex_by_pos, mirror_vertices_by_edge
 from rigging_toolkit.maya.utils.delta import ExtractCorrectiveDelta
 from pathlib import Path
 import json
@@ -122,6 +122,13 @@ def export_blendshape_targets(mesh):
         extracted_meshes.append(shape)
         cmds.setAttr(attr, 0)
     return extracted_meshes
+
+def export_blendshape_targets_to_grp(mesh):
+    # type: (str) -> str
+    shapes_grp = cmds.createNode("transform", n=f"{mesh})_Shapes_GRP")
+    blendshapes = export_blendshape_targets(mesh)
+    cmds.parent(blendshapes, shapes_grp)
+    return shapes_grp
 
 def vertex_ids_from_components_target(components_target):
     # type: (List[str]) -> List[int]
@@ -294,7 +301,7 @@ def get_weights_from_blendshape(blendshape_name, remove_unused_maps=False):
         weights.append(WeightMap(shape_name, values))
     return weights
 
-def get_weight_from_blendshape_target(blendshape_name, target):
+def get_weights_from_blendshape_target(blendshape_name, target):
     # type: (str, str) -> WeightMap
     mesh = cmds.blendShape(blendshape_name, q=True, geometry=True)
     vertex_count = cmds.polyEvaluate(mesh, v=True)
@@ -306,7 +313,7 @@ def get_weight_from_blendshape_target(blendshape_name, target):
 def export_weight_map(blendshape_name, target, folder_path, name_overwrite=None):
     # type: (str, str, Path, Optional[str]) -> None
 
-    weights = get_weight_from_blendshape_target(blendshape_name, target)
+    weights = get_weights_from_blendshape_target(blendshape_name, target)
     if name_overwrite is not None and isinstance(name_overwrite, str):
         new_file, _ = find_new_version(folder_path, name_overwrite, "wmap")
     else:
@@ -339,21 +346,19 @@ def apply_weightmap_to_target(blendshape_name, target_name, weight_map):
     target_weights_attr = f"{blendshape_name}.inputTarget[0].inputTargetGroup[{target_index}].targetWeights[0:{len(values) - 1}]"
     cmds.setAttr(target_weights_attr, *values, size=len(values))
 
+# Not really worth using, too slow
 def get_adjusted_weight_maps(blendshape_name):
     # type: (str) -> List[str]
-    targets = list_shapes(blendshape_name)
-    target_indices = [get_target_index(blendshape_name, target) for target in targets]
-    weight_maps = []
-    mesh = cmds.blendShape(blendshape_name, q=True, geometry=True)
-    vertex_count = cmds.polyEvaluate(mesh, v=True)
-    for shape_name, shape_idx in zip(targets, target_indices):
-        values = cmds.getAttr(
-            f"{blendshape_name}.inputTarget[0].inputTargetGroup[{shape_idx}].targetWeights[0:{vertex_count-1}]"
-        )
-        if np.all(np.array(values) == 1):
+    adjusted_maps = []
+    weight_maps = get_weights_from_blendshape(blendshape_name)
+    vertex_count = weight_maps[0].vertex_count
+    default_wm = WeightMap.load_default("default", vertex_count)
+    for weight_map in weight_maps:
+        if default_wm == weight_map:
             continue
-        weight_maps.append(shape_name)
-    return weight_maps
+        adjusted_maps.append(weight_map)
+    
+    return adjusted_maps
 
 def import_weight_map(blendshape_name, target, file_path):
     # type: (str, str, Path) -> None
@@ -363,6 +368,15 @@ def import_weight_map(blendshape_name, target, file_path):
     weight_map = WeightMap.load(data)
 
     apply_weightmap_to_target(blendshape_name, target, weight_map)
+
+def import_weight_map_to_targets(blendshape_name, targets, file_path):
+    # type: (str, List[str], Path) -> None
+    with open(str(file_path), "r") as f:
+        data = json.load(f)
+
+    weight_map = WeightMap.load(data)
+    for target in targets:
+        apply_weightmap_to_target(blendshape_name, target, weight_map)
 
 def get_all_blendshapes():
     # type: () -> List[str]
@@ -376,101 +390,14 @@ def get_all_blendshapes():
 
     return all_blendshapes
 
-
-def normalize_weight_maps(blendshape, targets):
-    # type: (str, List) -> None
-    weights_dict = {}
-    output = []
-    
-    for target in targets:
-        mesh = cmds.blendShape(blendshape, q=True, geometry=True)
-        verticies = cmds.ls(mesh[0] + ".vtx[*]", fl=True)
-        target_index = get_target_index(blendshape, target)
-        for vertex in verticies:
-            vtx = vertex.split(".")[1]
-            index = re.findall(r"[0-9]+", vtx)
-            weight = cmds.getAttr("{}.inputTarget[0].inputTargetGroup[{}].targetWeights[{}]".format(blendshape, target_index, index[0]))
-            if vertex not in weights_dict:
-                weights_dict[vertex] = [weight]
-            else:
-                weights_dict[vertex].append(weight)
-                
-    
-    for key, values in weights_dict.items():
-        
-        vtx = key.split(".")[1]
-        index = re.findall(r"[0-9]+", vtx)
-        
-        total_weight_per_vertex = sum(values)
-        if total_weight_per_vertex != 1 and total_weight_per_vertex != 0:
-            output.append([key, total_weight_per_vertex])
-            normalizer = 1 / float( sum(values) )
-            numListNormalized = [x * normalizer for x in values]
-            output.append("vertex: {}\norg_values: {}, org_total_weight: {}\nnew_values: {}, new_total_weight: {}".format(
-                key,
-                values,
-                total_weight_per_vertex,
-                numListNormalized,
-                sum(numListNormalized)
-            ))
-            
-            for idx, target in enumerate(targets):
-                target_index = get_target_index(blendshape, target)
-                cmds.setAttr("{}.inputTarget[0].inputTargetGroup[{}].targetWeights[{}]".format(blendshape, idx, index[0]), numListNormalized[idx])
-                        
-    if not output:
-        print("All weights add up to 1")
-        return
-        
-    output_str = "The following verticies have been normalized:"
-    for value in output:
-        output_str += "\n\n{}".format(value)
-        
-    print(output_str)
-
-def normalize_default_weight_maps(blendshape):
-    # type: (str) -> None
-    default_splitting_data = {
-        "four_split_targets": [
-            "msk_xUpperLeft",
-            "msk_xUpperRight",
-            "msk_xDownLeft",
-            "msk_xDownRight"
-        ],
-
-        "left_right_targets": [
-            "msk_xLeft",
-            "msk_xRight"
-        ],
-
-        "upper_down_targets": [
-            "msk_xUpper",
-            "msk_xDown"
-        ],
-    }
-
-    for targets in default_splitting_data.values():
-        normalize_weight_maps(blendshape, targets)
+def apply_default_weightmap_to_target(blendshape_name, target_name):
+    mesh = cmds.blendShape(blendshape_name, q=True, geometry=True)
+    vertex_count = cmds.polyEvaluate(mesh, v=True)
+    default_weightmap = WeightMap.load_default(name=target_name, vertex_count=vertex_count)
+    apply_weightmap_to_target(blendshape_name, target_name, default_weightmap)
+    return default_weightmap
 
 def create_corrective_delta(blendshape, full_shapes, corrective):
-    # type: (str, List, str) -> Delta
-    # full_shape_delta = [get_delta(blendshape, x) for x in full_shapes]
-    # full_sum = None
-    # for i in full_shape_delta:
-    #     print(full_sum)
-    #     if full_sum is None:
-    #         full_sum = i
-    #         continue
-    #     full_sum = full_sum + i
-    # target_corrective_delta = get_delta(blendshape, corrective)
-    # final_corrective_delta = target_corrective_delta - full_sum
-
-    # set_delta(blendshape, final_corrective_delta, target_name=corrective)
-    
-    # check_delta = final_corrective_delta == target_corrective_delta
-    # print(check_delta)
-
-    # return final_corrective_delta
 
     mesh = cmds.blendShape(blendshape, q=True, geometry=True)[0]
     dummy_mesh = cmds.duplicate(mesh, n="splitting_mesh")[0]
@@ -491,5 +418,153 @@ def create_corrective_delta(blendshape, full_shapes, corrective):
 
     cmds.rename(extracted_delta, corrective)
 
-    # return delta
+def set_delta_weightmap_to_target(blendshape_name, target):
+    default_weight_map = apply_default_weightmap_to_target(blendshape_name, target)
+    delta = get_delta(blendshape_name, target)
+    data = delta.data()
 
+    indicies = data["indices"]
+    target_index = get_target_index(blendshape_name, target)
+    mesh = cmds.blendShape(blendshape_name, q=True, geometry=True)
+    vertex_count = cmds.polyEvaluate(mesh, v=True)
+    for idx in range(0, vertex_count):
+        target_weights_attr = f"{blendshape_name}.inputTarget[0].inputTargetGroup[{target_index}].targetWeights[{idx}]"
+        if idx in indicies:
+            cmds.setAttr(target_weights_attr, 1.0)
+            continue
+        cmds.setAttr(target_weights_attr, 0.0)
+
+    weight_map = get_weights_from_blendshape_target(blendshape_name, target)
+    return weight_map
+
+def inverse_target_weightmap(blendshape_name, target):
+    weights = get_weights_from_blendshape_target(blendshape_name, target)
+    inverse_weights = weights.inverse()
+    apply_weightmap_to_target(blendshape_name, target, inverse_weights)
+
+def get_transform_from_blendshape(blendshape_name):
+    # type: (str) -> str
+    shape = cmds.blendShape(blendshape_name, q=True, geometry=True)[0]
+    transform = cmds.listRelatives(shape, typ="transform", p=True)[0]
+    return transform
+
+def mirror_weight_map_by_pos(blendshape_name, target, mirror_type="world", mirror_axis="x"):
+    # type: (str, str, Optional[str], Optional[str]) -> WeightMap
+    mesh = get_transform_from_blendshape(blendshape_name)
+    current_weight_map = get_weights_from_blendshape_target(blendshape_name, target)
+    current_weights = current_weight_map.weights
+    indicies = current_weight_map.indices
+    mirrored_weights_dict = {}
+    mirrored_values = []
+    for idx, weight in current_weights.items():
+        mirrored_idx = mirror_vertex_by_pos(mesh, idx, mirror_axis, mirror_type)
+        mirrored_weights_dict[mirrored_idx] = weight
+
+    non_mirrored_verticies = []
+
+    for vtx in indicies:
+        vtx_weights = mirrored_weights_dict.get(vtx)
+        if vtx_weights is None:
+            vtx_weights = 0.0
+            non_mirrored_verticies.append(vtx)
+        mirrored_values.append(vtx_weights)
+
+    mirrored_weight_map = WeightMap(f"{current_weight_map.name}_mirrored", mirrored_values)
+    apply_default_weightmap_to_target(blendshape_name, target)
+    initial_delta = get_delta(blendshape_name, target)
+    new_target_name = f"{initial_delta.name}_mirrored"
+    duplicate_blendshape_target(blendshape_name, target, new_name=new_target_name)
+    set_delta(blendshape_name, initial_delta, new_target_name)
+    apply_weightmap_to_target(blendshape_name, target, current_weight_map)
+    apply_weightmap_to_target(blendshape_name, new_target_name, mirrored_weight_map)
+
+    if non_mirrored_verticies:
+        logger.warning(
+            "The following vertex weights have not been mirrored, please check mesh symmetry"
+        )
+        logger.warning(f"{non_mirrored_verticies}")
+
+    return mirrored_weight_map
+
+def mirror_weight_map_by_topology(blendshape_name, target, mirror_edge):
+    # type: (str, str, str) -> WeightMap
+    mesh = get_transform_from_blendshape(blendshape_name)
+    current_weight_map = get_weights_from_blendshape_target(blendshape_name, target)
+    current_weights = current_weight_map.weights
+    indicies = current_weight_map.indices
+    match = re.search(r'\[(\d+)\]', mirror_edge)
+
+    if match:
+        edge = int(match.group(1))
+
+    mirrored_weights = []
+    mirrored_vertices = mirror_vertices_by_edge(mesh, edge, indicies)
+    for idx in mirrored_vertices:
+        current_weight = current_weights.get(idx)
+        mirrored_weights.append(current_weight)
+
+    mirrored_weight_map = WeightMap(f"{current_weight_map.name}_mirrored", mirrored_weights)
+    apply_default_weightmap_to_target(blendshape_name, target)
+    initial_delta = get_delta(blendshape_name, target)
+    new_target_name = f"{initial_delta.name}_mirrored"
+    duplicate_blendshape_target(blendshape_name, target, new_name=new_target_name)
+    set_delta(blendshape_name, initial_delta, new_target_name)
+
+    apply_weightmap_to_target(blendshape_name, target, current_weight_map)
+    apply_weightmap_to_target(blendshape_name, new_target_name, mirrored_weight_map)
+
+    return mirrored_weight_map
+
+def mirror_weight_map_by_topology_selection(blendshape_name, target):
+
+    mesh = get_transform_from_blendshape(blendshape_name)
+
+    cmds.select(cl=True)
+    cmds.selectMode(co=True)
+    cmds.selectType(eg=True)
+    cmds.hilite(mesh, r=True)
+    cmds.inViewMessage(amg='<hl>Select Center Edge</hl>.', pos='topCenter', fade=True )
+
+    def mirror_weight_map_callback(blendshape_name, target):
+        logger.info("Selection changed. Calling mirror_weight_map_by_topology...")
+        mirror_weight_map_by_topology(blendshape_name, target, cmds.ls(sl=True)[0])
+
+    cmds.scriptJob(runOnce=True, e=("SelectionChanged", lambda: mirror_weight_map_callback(blendshape_name, target)))
+
+def combine_weight_maps(blendshape, targets):
+    # type: (str, List[str]) -> WeightMap
+    weightmaps = [get_weights_from_blendshape_target(blendshape, x) for x in targets]
+    initial_delta = get_delta(blendshape, targets[0])
+    new_target_name = f"{initial_delta.name}_combined"
+    duplicate_blendshape_target(blendshape, targets[0], new_target_name)
+    set_delta(blendshape, initial_delta, new_target_name)
+    combined_weightmap = WeightMap.combine(weightmaps)
+    apply_weightmap_to_target(blendshape, new_target_name, combined_weightmap)
+    return combined_weightmap
+
+def subtract_weight_maps(blendshape, targets):
+    # type: (str, List[str]) -> WeightMap
+    weightmaps = [get_weights_from_blendshape_target(blendshape, x) for x in targets]
+    initial_delta = get_delta(blendshape, targets[0])
+    new_target_name = f"{initial_delta.name}_subtracted"
+    duplicate_blendshape_target(blendshape, targets[0], new_target_name)
+    set_delta(blendshape, initial_delta, new_target_name)
+    subtracted_weightmap = WeightMap.difference(weightmaps)
+    apply_weightmap_to_target(blendshape, new_target_name, subtracted_weightmap)
+    return subtracted_weightmap
+
+def duplicate_blendshape_target(blendshape, target, new_name=""):
+    # type: (str, str, Optional[str]) -> str
+    reset_blendshape_targets(blendshape)
+    cmds.setAttr(f"{blendshape}.{target}", 1)
+    transform = get_transform_from_blendshape(blendshape)
+    if new_name:
+        new_transform = cmds.duplicate(transform, n=new_name)[0]
+    else:
+        new_transform = cmds.duplicate(transform, n=f"{target}_duplicate")[0]
+
+    add_blendshape_target(blendshape, new_transform)
+
+    cmds.delete(new_transform)
+
+    return new_transform

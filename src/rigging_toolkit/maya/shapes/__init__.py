@@ -1,6 +1,7 @@
-from .shapes_manager import export_shapes, import_shapes
+from .shapes_manager import export_blendshapes, import_shapes, export_shapes
 
 __all__ = [
-    "export_shapes",
+    "export_blendshapes",
     "import_shapes",
+    "export_shapes"
 ]

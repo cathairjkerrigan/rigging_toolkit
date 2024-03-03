@@ -9,15 +9,17 @@ from itertools import combinations
 from rigging_toolkit.maya.utils.delta import ExtractCorrectiveDelta
 import json
 import os
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 class ShapeGraph(object):
 
-    def __init__(self, context):
-        # type: (Context) -> None
+    def __init__(self, context, load_neutral=True):
+        # type: (Context, Optional[bool]) -> None
 
         self.context = context
+        self.load_neutral = load_neutral
         self.shape_dic = { 
                         "base_shapes": {"": ""},
                         "combo_shapes": {"": ""}
@@ -64,7 +66,10 @@ class ShapeGraph(object):
         self._evaluate_base_shapes()
         self._find_graph_children()
 
-        self.neutral = self._load_neutral()
+        if self.load_neutral:
+            self.neutral = self._load_neutral()
+        else:
+            self.neutral = "geo_head_L1"
 
         self.load_shapes_from_shapes_folder()
         self.assign_splitting_groups()
@@ -280,7 +285,7 @@ class ShapeGraph(object):
     
     def assign_splitting_groups(self):
 
-        splitting_json, _ = find_latest(self.context.rigs_path / "data", "face_splitter", "json")
+        splitting_json, _ = find_latest(self.context.rigs_path / "data", "face", "json")
         with splitting_json.open() as f:
             data = json.load(f)
 
@@ -329,7 +334,7 @@ class ShapeGraph(object):
         print(match)
         print(corrective_matches)
 
-        splitting_json, _ = find_latest(self.context.rigs_path / "data", "face_splitter", "json")
+        splitting_json, _ = find_latest(self.context.rigs_path / "data", "face", "json")
         with splitting_json.open() as f:
             data = json.load(f)
 
@@ -397,7 +402,7 @@ class ShapeGraph(object):
     def get_corrective_shape_splitting_group(self, shape, splitting_group):
         
         corrective_components = self.get_shape_components(shape)
-        splitting_json, _ = find_latest(self.context.rigs_path / "data", "face_splitter", "json")
+        splitting_json, _ = find_latest(self.context.rigs_path / "data", "face", "json")
         with splitting_json.open() as f:
             data = json.load(f)
         
@@ -590,7 +595,7 @@ class ShapeGraph(object):
         return components
         
     def get_shape_split_types(self, shape_name):
-        splitting_json, _ = find_latest(self.context.rigs_path / "data", "face_splitter", "json")
+        splitting_json, _ = find_latest(self.context.rigs_path / "data", "face", "json")
         with splitting_json.open() as f:
             data = json.load(f)
 
@@ -608,7 +613,7 @@ class ShapeGraph(object):
         base_shapes = [shp for shp in facial_bs_targets if 'delta' not in shp]            
         corrective_shapes = [shp for shp in facial_bs_targets if 'delta' in shp]
                 
-        splitting_json, _ = find_latest(self.context.rigs_path / "data", "face_splitter", "json")
+        splitting_json, _ = find_latest(self.context.rigs_path / "data", "face", "json")
         with splitting_json.open() as f:
             data = json.load(f)
                

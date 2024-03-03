@@ -1,6 +1,6 @@
 from rigging_toolkit.ui.widgets import TabWidget
 from PySide2 import QtWidgets, QtCore
-from rigging_toolkit.maya.utils import get_adjusted_weight_maps, export_weight_map, export_all_weight_maps
+from rigging_toolkit.maya.utils import list_shapes, export_weight_map, export_all_weight_maps
 import logging
 from pathlib import Path
 
@@ -44,15 +44,17 @@ class ExportWeightMapTab(TabWidget):
         self._shape_listwidget.clear()
         if self.blendshape is None:
             return
-        weight_maps = get_adjusted_weight_maps(self.blendshape)
-        if weight_maps:
-            self._shape_listwidget.addItems(weight_maps)
+        shapes = list_shapes(self.blendshape)
+        if shapes:
+            self._shape_listwidget.addItems(shapes)
         else:
             logger.warning(f"No adjusted weight maps found on {self.blendshape}...")
 
     def _on_blendshape_index_changed(self, blendshape):
         # type: (str) -> None
         self.blendshape = blendshape
+        if not self.blendshape:
+            return
         self._populate_list_widget()
 
     def _on_file_path_changed(self, file_path):

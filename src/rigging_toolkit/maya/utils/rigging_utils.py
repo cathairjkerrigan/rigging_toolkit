@@ -1,5 +1,7 @@
 from maya import cmds
-from typing import Optional
+from typing import Optional, Union, List, Tuple
+from rigging_toolkit.maya.utils.mesh_utils import sphere_center, closest_uv_from_point
+import maya.api.OpenMaya as om2
 
 AXIS = ["x", "y", "z"]
 
@@ -59,3 +61,53 @@ def joint_label(transform, name, side):
     cmds.setAttr(f"{transform}.side", side)
     cmds.setAttr(f"{transform}.type", 18)
     cmds.setAttr(f"{transform}.otherType", name, typ='string')
+
+def center_eye_joint(joint, mesh):
+    # type: (str, Union[str, List[str]]) -> None
+    """Places the given joint in the center of the mesh
+
+    Note:
+        the joint can really be any transform node.
+        the mesh does't need to be an eye either, but is mostly used for this.
+    """
+    center, _ = sphere_center(mesh)
+    cmds.xform(joint, worldSpace=True, translation=(center.x, center.y, center.z))
+
+def create_follicle_jnts_at_vertices(mesh, vertices, name="follicle_jnt"):
+    # type: (str, List[str], Optional[str]) -> Tuple[List[str], List[str]]
+    joints = []
+    follicles = []
+    count = 1    
+    for vtx in vertices:
+        ws_pos = cmds.xform(vtx, ws=True, q=True, t=True)
+        m_point = om2.MPoint(ws_pos)
+        uv = closest_uv_from_point(mesh, m_point)
+        jnt = cmds.createNode("joint", n=f"{name}_{count:02d}_jnt")
+        cmds.xform(jnt, ws=True, t=ws_pos)
+        follicle = cmds.createNode("follicle", n=f"{name}_{count:02d}_follicleShape")
+        transform = cmds.listRelatives(follicle, parent=True, fullPath=True)[0]  # type: str
+        follicle = cmds.listRelatives(transform, shapes=True, fullPath=True)[0]
+        transform = cmds.rename(transform, f"{name}_{count:02d}_follicle")
+
+        cmds.connectAttr(f"{mesh}.outMesh", f"{follicle}.inputMesh")
+        cmds.connectAttr(
+            f"{mesh}.worldMatrix[0]", f"{follicle}.inputWorldMatrix"
+        )
+        cmds.connectAttr(
+            f"{follicle}.outTranslate", f"{transform}.translate"
+        )
+        cmds.connectAttr(f"{follicle}.outRotate", f"{transform}.rotate")
+
+        cmds.setAttr(f"{follicle}.parameterU", uv[0])
+        cmds.setAttr(f"{follicle}.parameterV", uv[1])
+        
+        follicle_t_pos = cmds.xform(transform, query=True, translation=True, worldSpace=True)
+        follicle_r_pos = cmds.xform(transform, query=True, rotation=True, worldSpace=True)
+        cmds.xform(jnt, ws=True, t=follicle_t_pos)
+        cmds.xform(jnt, ws=True, rotation=follicle_r_pos)
+        cmds.parentConstraint(transform, jnt, mo=0)
+        joints.append(jnt)
+        follicles.append(transform)
+        count += 1
+
+    return joints, follicles

@@ -13,6 +13,7 @@ from rigging_toolkit.ui.context_ui import ContextUI
 from rigging_toolkit.maya.shaders import export_shaders, setup_shaders
 from rigging_toolkit.ui.widgets import TabWidget
 from rigging_toolkit.ui.tabs.assets import AssetsTab
+from rigging_toolkit.ui.tabs.rigging import RiggingTab
 from maya import cmds
 
 from rigging_toolkit.ui.tabs.test_tab import TestTab
@@ -58,6 +59,9 @@ class RiggingToolboxWindow(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 
         self.assets_tab = AssetsTab(context=self.context())
         self.add_tab(self._tab_widget, self.assets_tab)
+
+        self.rigging_tab = RiggingTab(context=self.context())
+        self.add_tab(self._tab_widget, self.rigging_tab)
 
     
         self._layout.addStretch() 

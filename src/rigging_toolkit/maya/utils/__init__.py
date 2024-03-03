@@ -1,7 +1,7 @@
-from .scene_utils import delete_namespaces, delete_unknown_nodes, import_asset, import_assets, get_all_transforms
-from .selection_utils import reset_attributes_to_default, unlock_unhide_keyable_attrs, lock_keyable_attrs, delete_keyframes_from_selection, select_hiearchy, baricentre_from_selection, get_shaders_from_selection, ls, delete_history
+from .scene_utils import delete_namespaces, delete_unknown_nodes, import_asset, import_assets, get_all_transforms, exists, scene_cleanup
+from .selection_utils import reset_attributes_to_default, unlock_unhide_keyable_attrs, lock_keyable_attrs, delete_keyframes_from_selection, select_hiearchy, baricentre_from_selection, get_shaders_from_selection, ls, delete_history, parent_shapes, set_shapes_reference_display, ls_meshes, ls_shapes, ls_transforms, ls_joints, ls_all
 from .api import get_dag_path_api_1, get_dag_path_api_2, get_mobject
-from .deformers import deformers_by_type, clean_joint_rotation, clean_joint_rotation_for, clean_joint_rotation_for_selected, get_skin_cluster, num_influences, prune_influences, list_shapes, get_target_index, reset_blendshape_targets, export_blendshape_targets, vertex_ids_from_components_target, get_deltas, get_weights_from_blendshape, apply_weightmap_to_base, apply_weightmap_to_target, get_adjusted_weight_maps, export_weight_map, export_all_weight_maps, import_weight_map, get_all_blendshapes, normalize_weight_maps, normalize_default_weight_maps, get_delta, add_blendshape_target, set_deltas, set_delta, create_corrective_delta, activate_blendshape_targets, activate_blendshape_target, add_blendshape_targets
+from .deformers import deformers_by_type, clean_joint_rotation, clean_joint_rotation_for, clean_joint_rotation_for_selected, get_skin_cluster, num_influences, prune_influences, list_shapes, get_target_index, reset_blendshape_targets, export_blendshape_targets, vertex_ids_from_components_target, get_deltas, get_weights_from_blendshape, apply_weightmap_to_base, apply_weightmap_to_target, get_adjusted_weight_maps, export_weight_map, export_all_weight_maps, import_weight_map, get_all_blendshapes, get_delta, add_blendshape_target, set_deltas, set_delta, create_corrective_delta, activate_blendshape_targets, activate_blendshape_target, add_blendshape_targets, export_blendshape_targets_to_grp, import_weight_map_to_targets
 from .mesh_utils import get_mesh_path, get_parent, get_shapes, list_verticies, export_mesh, get_all_shapes, toggle_template_display, query_template_display, toggle_template_display_for_all_meshes, shortest_edge_path, convert_to_vertex_list, get_shaders_from_mesh, get_shaders_from_meshes, assign_shader, get_all_meshes, export_versioned_mesh, has_uvset, set_current_uvset
 from .node_utils import export_node_network, import_node_network
 from .delta import Delta, ExtractCorrectiveDelta
@@ -67,8 +67,6 @@ __all__ = [
     "get_all_blendshapes",
     "ls",
     "export_versioned_mesh",
-    "normalize_default_weight_maps",
-    "normalize_weight_maps",
     "add_blendshape_target",
     "set_delta",
     "set_deltas",
@@ -80,4 +78,15 @@ __all__ = [
     "set_current_uvset",
     "delete_history",
     "add_blendshape_targets",
+    "exists",
+    "parent_shapes",
+    "set_shapes_reference_display",
+    "ls_transforms",
+    "ls_shapes",
+    "ls_meshes",
+    "scene_cleanup",
+    "ls_joints",
+    "export_blendshape_targets_to_grp",
+    "ls_all",
+    "import_weight_map_to_targets"
     ]

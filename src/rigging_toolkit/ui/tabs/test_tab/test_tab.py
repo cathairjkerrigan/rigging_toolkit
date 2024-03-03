@@ -5,7 +5,9 @@ from PySide2 import QtWidgets
 from rigging_toolkit.maya.shaders import export_shaders, setup_shaders
 from rigging_toolkit.core.filesystem import has_folders, find_latest
 from rigging_toolkit.maya.utils import create_corrective_delta, deformers_by_type, ls
+from rigging_toolkit.maya.rigging.face import FaceRig
 from rigging_toolkit.maya.shapes.shape_graph import ShapeGraph
+from rigging_toolkit.maya.rigging.eyes import build_eye_rig
 from maya import cmds
 
 class TestTab(TabWidget):
@@ -38,7 +40,7 @@ class TestTab(TabWidget):
 
     def test_func(self):
 
-        ShapeGraph(self.context)
+        FaceRig(self.context)
         
 
     def test_func_2(self):
@@ -62,11 +64,13 @@ class TestTab(TabWidget):
 
         context = self.context
 
-        file_path = context.shaders_path
-        meshes = cmds.ls(sl=1)
-        print(meshes)
+        build_eye_rig(context)
 
-        export_shaders(meshes, file_path)
+        # file_path = context.shaders_path
+        # meshes = cmds.ls(sl=1)
+        # print(meshes)
+
+        # export_shaders(meshes, file_path)
 
     def test_func_3(self):
         print("button is working")

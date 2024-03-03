@@ -1,6 +1,6 @@
 from rigging_toolkit.ui.widgets import TabWidget
 from PySide2 import QtWidgets, QtCore
-from rigging_toolkit.maya.utils import list_shapes, import_weight_map
+from rigging_toolkit.maya.utils import list_shapes, import_weight_map, import_weight_map_to_targets
 from rigging_toolkit.core.filesystem import find_all_latest, find_latest
 import logging
 
@@ -66,6 +66,8 @@ class ImportWeightMapTab(TabWidget):
     def _on_blendshape_index_changed(self, blendshape):
         # type: (str) -> None
         self.blendshape = blendshape
+        if not self.blendshape:
+            return
         self._populate_shape_list_widget()
 
     def _on_file_path_changed(self, file_path):
@@ -95,8 +97,10 @@ class ImportWeightMapTab(TabWidget):
 
         latest_wm, _ = find_latest(self.file_path, current_selected_wm, "wmap")
 
-        for shape in current_selected_shapes:
-            import_weight_map(self.blendshape, shape, latest_wm)
+        # for shape in current_selected_shapes:
+        #     import_weight_map(self.blendshape, shape, latest_wm)
+
+        import_weight_map_to_targets(self.blendshape, current_selected_shapes, latest_wm)
 
         self.IMPORT_SIGNAL.emit()
 
@@ -107,7 +111,6 @@ class ImportWeightMapTab(TabWidget):
 
         latest_wm, _ = find_latest(self.file_path, current_selected_wm, "wmap")
 
-        for shape in shapes:
-            import_weight_map(self.blendshape, shape, latest_wm)
+        import_weight_map_to_targets(self.blendshape, shapes, latest_wm)
 
         self.IMPORT_SIGNAL.emit()

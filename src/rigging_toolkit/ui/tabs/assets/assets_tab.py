@@ -4,7 +4,7 @@ from rigging_toolkit.ui.widgets import TabWidget
 from PySide2 import QtWidgets
 from rigging_toolkit.maya.shaders import export_selected_shaders, setup_shaders
 from rigging_toolkit.maya.assets import export_all_character_assets, import_character_assets, export_selected_character_assets
-from rigging_toolkit.maya.shapes import export_shapes, import_shapes
+from rigging_toolkit.maya.shapes import export_blendshapes, import_shapes, export_shapes
 from rigging_toolkit.ui.dialogs import WeightMapTool
 from rigging_toolkit.ui.widgets import MultiMessageBox
 from rigging_toolkit.maya.utils import deformers_by_type, list_shapes, ls, reset_blendshape_targets, export_blendshape_targets
@@ -80,6 +80,9 @@ class AssetsTab(TabWidget):
         self._export_shapes_button = QtWidgets.QPushButton("Export Shapes")
         self._export_shapes_button.clicked.connect(self._on_export_shapes_clicked)
 
+        self._export_blendshapes_button = QtWidgets.QPushButton("Export Blendshape Targets")
+        self._export_blendshapes_button.clicked.connect(self._on_export_blendshapes_clicked)
+
         self._import_shapes_button = QtWidgets.QPushButton("Import Shapes")
         self._import_shapes_button.clicked.connect(self._on_import_shapes_clicked)
 
@@ -87,6 +90,7 @@ class AssetsTab(TabWidget):
         self._shape_utils_layout.addWidget(self._reset_shapes_button, 0, 1)
         self._shape_utils_layout.addWidget(self._export_shapes_button, 1, 1)
         self._shape_utils_layout.addWidget(self._import_shapes_button, 1, 0)
+        self._shape_utils_layout.addWidget(self._export_blendshapes_button, 2, 0, 1, 2)
 
         self._weight_map_layout = QtWidgets.QHBoxLayout()
     
@@ -154,7 +158,7 @@ class AssetsTab(TabWidget):
         for blendshape in blendshapes:
             reset_blendshape_targets(blendshape)
 
-    def _on_export_shapes_clicked(self):
+    def _on_export_blendshapes_clicked(self):
         # type: () -> None
 
         message_box = MultiMessageBox()
@@ -167,13 +171,13 @@ class AssetsTab(TabWidget):
             [("Yes", True), ("No", False)],
         )
 
-        export_shapes_to_folder = message_box.exec_()
+        export_blendshapes_to_folder = message_box.exec_()
 
-        if export_shapes_to_folder is None:
+        if export_blendshapes_to_folder is None:
             logger.warning("Terminating Export Shapes...")
             return
         
-        if export_shapes_to_folder is False:
+        if export_blendshapes_to_folder is False:
             export_blendshape_targets(selected_mesh[0])
             return
         
@@ -190,11 +194,15 @@ class AssetsTab(TabWidget):
             return
         
         if export_type is False:
-            export_shapes(self.context)
+            export_blendshapes(self.context)
             return
         
-        export_shapes(self.context, split_type=export_type)
+        export_blendshapes(self.context, split_type=export_type)
 
     def _on_import_shapes_clicked(self):
         # type: () -> None
         import_shapes(self.context, ignore_list=["_archive"])
+
+    def _on_export_shapes_clicked(self):
+        # type: () -> None
+        export_shapes(self.context)
