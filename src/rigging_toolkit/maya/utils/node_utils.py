@@ -3,7 +3,7 @@ from maya import cmds
 from dataclasses import dataclass
 from typing import List, Tuple, Dict, Union, Any
 import json
-from pathlib import Path
+from rigging_toolkit.core.filesystem import Path
 
 @dataclass
 class NodeData:

@@ -3,7 +3,7 @@ from rigging_toolkit.core.context import Context
 from rigging_toolkit.ui.widgets import TabWidget
 from PySide2 import QtWidgets
 from rigging_toolkit.maya.shaders import export_shaders, setup_shaders
-from rigging_toolkit.core.filesystem import has_folders, find_latest
+from rigging_toolkit.core.filesystem import find_latest
 from rigging_toolkit.maya.utils import create_corrective_delta, deformers_by_type, ls
 from rigging_toolkit.maya.rigging.face import FaceRig
 from rigging_toolkit.maya.shapes.shape_graph import ShapeGraph

@@ -2,7 +2,7 @@ import maya.api.OpenMaya as om2
 from maya import cmds
 from typing import Optional, Union, List, Text
 from .general import deformers_by_type
-from pathlib import Path
+from rigging_toolkit.core.filesystem import Path
 from xml.etree import ElementTree
 
 import logging

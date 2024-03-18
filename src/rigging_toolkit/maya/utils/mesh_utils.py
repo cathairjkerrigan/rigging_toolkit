@@ -4,7 +4,7 @@ import six
 import operator
 import logging
 from typing import List, Optional, Union, Tuple
-from pathlib import Path
+from rigging_toolkit.core.filesystem import Path
 from rigging_toolkit.core.filesystem import find_new_version
 from rigging_toolkit.maya.utils.api.dag import get_dag_path_api_2
 import maya.api.OpenMaya as om2

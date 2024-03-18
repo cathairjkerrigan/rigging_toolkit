@@ -7,7 +7,7 @@ from rigging_toolkit.maya.utils.weightmap import WeightMap
 from rigging_toolkit.core.filesystem import find_new_version
 from rigging_toolkit.maya.utils.mesh_utils import get_all_meshes, mirror_vertex_by_pos, mirror_vertices_by_edge
 from rigging_toolkit.maya.utils.delta import ExtractCorrectiveDelta
-from pathlib import Path
+from rigging_toolkit.core.filesystem import Path
 import json
 import logging
 import numpy as np

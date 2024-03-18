@@ -1,8 +1,7 @@
 from PySide2 import QtWidgets, QtGui, QtCore
 from maya import cmds
-from pathlib import Path
 import json
-from rigging_toolkit.core import path_exists, get_folders, Context, validate_path
+from rigging_toolkit.core import Context, Path
 import logging
 from typing import Optional, Generator, cast
 import re
@@ -29,13 +28,17 @@ class ContextUI(QtWidgets.QGroupBox):
         self._suppress_context_changed_counter = 0
 
         self._context = None # type: Context
-
+        logger.warning(f"Context during init after creation: {self._context}")
         self.context_changed.connect(lambda x: logger.debug(f"context_changed to {str(x)}"))
         
         self.create_widgets()
+        logger.warning(f"Context during init create_widgets: {self._context}")
         self.create_layouts()
+        logger.warning(f"Context during init create_layouts: {self._context}")
         self.create_connections()
+        logger.warning(f"Context during init create_connections: {self._context}")
         self.load_settings()
+        logger.warning(f"Context during init load_settings: {self._context}")
         
     @property
     def suppress_context_changed_signal(self):
@@ -71,14 +74,14 @@ class ContextUI(QtWidgets.QGroupBox):
         '''
 
         try:
-            self.suppress_context_changed_signal = True
+            self.suppress_context_changed_signal = 0
             yield
         except Exception as e:
             logger.exception(e)
             raise
 
         finally:
-            self.suppress_context_changed_signal = False
+            self.suppress_context_changed_signal = -1
 
 
     def create_widgets(self):
@@ -243,7 +246,7 @@ class ContextUI(QtWidgets.QGroupBox):
         settings_path = Path(__file__).resolve().parent / "context_settings.json"
         settings = {}
         settings["project_path"] = self._dir_lineedit.text()
-        settings["index"] = self._char_combobox.currentIndex()
+        settings["index"] = self._char_combobox.currentIndex() if self._char_combobox.currentIndex() >= 0 else 0
 
         with open(str(settings_path), "w") as f:
             json.dump(settings, f, indent=4)
@@ -269,7 +272,7 @@ class ContextUI(QtWidgets.QGroupBox):
         self.reset_character_combobox()
         if not self.project_path():
             return
-        for folder in get_folders(self.project_path(), ignore_list=self.IGNORE_LIST):
+        for folder in Path.get_folders(self.project_path(), ignore_list=self.IGNORE_LIST):
             self._char_combobox.addItem(folder.name)
 
         self._char_combobox.addItem("new...")
@@ -278,7 +281,7 @@ class ContextUI(QtWidgets.QGroupBox):
 
     def load_project_path(self):
         with self.prevent_context_changed_event():
-            if self._dir_lineedit.text() and path_exists(self._dir_lineedit.text()):
+            if self._dir_lineedit.text() and Path(self._dir_lineedit.text()).exists():
                 self.reset_character_combobox()
                 self.set_character_names()
                 self._char_combobox.setDisabled(False)
@@ -306,8 +309,8 @@ class ContextUI(QtWidgets.QGroupBox):
                 self.set_character_names()
                 self._char_combobox.setCurrentText(dialog.name)
 
-            character_path = self.project_path() / self.character_name()
-            if path_exists(character_path):
+            character_path = self.project_path() / self.character_name() # type: Path
+            if character_path.exists():
                 context = Context.new(
                     self.project_path(),
                     self.character_name()
@@ -327,9 +330,12 @@ class ContextUI(QtWidgets.QGroupBox):
         self.context = self.update_context()
 
     def load_context(self):
+        logger.warning(f"combobox items = {[self._char_combobox.itemText(i) for i in range(self._char_combobox.count())]}")
         path = self._dir_lineedit.text()
         name = self._char_combobox.currentText()
-        if not path_exists(path) or name == "":
+        if not Path(path).exists() or name == "":
+            logger.warning(f"Path {path} does not exist for some reason")
+            logger.warning(f"name: {name}")
             return
         self.context = self.initialize_context(path, name)
 
@@ -345,7 +351,8 @@ class ContextUI(QtWidgets.QGroupBox):
         return context
     
     def update_context(self):
-        context = Context(
+        logger.error("we're updating the context")
+        context = Context.new(
             project_path=self.project_path(),
             character_name=self.character_name(),
             assets_series=self.assets_series(),
@@ -365,7 +372,8 @@ class ContextUI(QtWidgets.QGroupBox):
         return None
 
     def project_path(self):
-        if self._dir_lineedit.text() == "" or not path_exists(self._dir_lineedit.text()):
+        if self._dir_lineedit.text() == "" or not Path(self._dir_lineedit.text()).exists():
+            logger.warning(f"project path doesn't exist for some reason")
             return None
         return Path(self._dir_lineedit.text())
     
@@ -420,9 +428,9 @@ class ContextUI(QtWidgets.QGroupBox):
             return
         series_match = re.compile("\d\d\d")
 
-        animation_path = project_path / character_name / "animation"
+        animation_path = project_path / character_name / "animation" # type: Path
 
-        if not path_exists(animation_path):
+        if not animation_path.exists():
             return -1
 
         series = [
@@ -445,7 +453,7 @@ class ContextUI(QtWidgets.QGroupBox):
 
         builds_path = project_path / character_name / "builds"
 
-        if not path_exists(builds_path):
+        if not builds_path.exists():
             return -1
 
         series = [
@@ -467,7 +475,7 @@ class ContextUI(QtWidgets.QGroupBox):
 
         config_path = project_path / character_name / "wip" / ".config"
 
-        if not path_exists(config_path):
+        if not config_path.exists():
             return None
 
         return config_path
@@ -481,7 +489,7 @@ class ContextUI(QtWidgets.QGroupBox):
         self.update_series("utilities", context)
 
     def update_series(self, name, context):
-
+        logger.error("updating the series")
         series_button = getattr(self, f"_{name}_pushbutton") # type: QtWidgets.QPushButton
 
         series_button.setDisabled(True)
@@ -495,7 +503,7 @@ class ContextUI(QtWidgets.QGroupBox):
         series_path = getattr(context, f"{name}_path")
         if series_path:
             series_parent_folder = getattr(context, f"{name}_path").parent
-            series_parent_folder = validate_path(series_parent_folder)
+            series_parent_folder = Path.validate_path(series_parent_folder)
 
             all_series = [x.name for x in series_parent_folder.iterdir() if x.is_dir()]
 
@@ -511,7 +519,11 @@ class ContextUI(QtWidgets.QGroupBox):
 
     def _on_series_changed(self):
         sender = cast(QtWidgets.QComboBox, self.sender())
-
+        logger.error(f"sender index = {sender.currentIndex()}") 
+        logger.error(f"sender current text: {sender.currentText()}")
+        if sender.currentIndex() < 0:
+            logger.warning(f"Cannot update context, no valid character found: {sender.currentText()}")
+            return
         if sender.currentText() == "new...":
             folder = None
             previous_value = -1

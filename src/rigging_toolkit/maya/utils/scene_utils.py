@@ -1,6 +1,6 @@
 from maya import cmds
 import logging
-from pathlib import Path
+from rigging_toolkit.core.filesystem import Path
 from typing import List, Optional
 from rigging_toolkit.core import Context
 from rigging_toolkit.core.filesystem import find_latest

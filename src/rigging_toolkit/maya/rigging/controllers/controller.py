@@ -7,7 +7,7 @@ from six import iteritems
 
 from rigging_toolkit.maya.utils.api import get_mobject
 
-from pathlib import Path
+from rigging_toolkit.core.filesystem import Path
 import json
 import logging
 

@@ -1,6 +1,6 @@
 from maya import cmds
 from rigging_toolkit.core.context import Context
-from rigging_toolkit.core.filesystem import find_latest, find_new_version, validate_path
+from rigging_toolkit.core.filesystem import find_latest, find_new_version, Path
 from typing import Optional, List
 import re
 from rigging_toolkit.maya.utils import export_mesh, get_all_transforms
@@ -36,7 +36,7 @@ def export_character_assets(context, assets):
         if match:
             asset_name = match.group(1)
 
-            asset_path = validate_path(character_assets_path / asset_name / "meshes", create_missing=True)
+            asset_path = Path.validate_path(character_assets_path / asset_name / "meshes", create_missing=True)
 
             new_version, _ = find_new_version(asset_path, asset, "abc")
 
@@ -44,9 +44,9 @@ def export_character_assets(context, assets):
 
 def import_asset(context, asset, ext="abc"):
     # type: (Context, str, Optional[str]) -> None
-    asset_path = validate_path(context.assets_path / asset, raise_error=True)
+    asset_path = Path.validate_path(context.assets_path / asset, raise_error=True)
     
-    meshes_path = validate_path(meshes_path = asset_path / "meshes", raise_error=True)
+    meshes_path = Path.validate_path(meshes_path = asset_path / "meshes", raise_error=True)
 
     latest, _ = find_latest(meshes_path, f"geo_{asset}_L1", ext)
 

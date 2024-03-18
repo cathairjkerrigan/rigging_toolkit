@@ -1,5 +1,5 @@
 from typing import Optional
-from rigging_toolkit.core import Context, find_new_version, find_latest, validate_path
+from rigging_toolkit.core import Context, find_new_version, find_latest, Path
 from rigging_toolkit.ui.widgets import TabWidget
 from rigging_toolkit.ui.dialogs import SetupSkeletonDialog
 from rigging_toolkit.maya.utils import ls_meshes, ls_joints
@@ -94,7 +94,7 @@ class RiggingTab(TabWidget):
 
     def _on_export_skin_weights_clicked(self):
         # type: () -> None
-        weights_path = validate_path(self.context.rigs_path / "weights", create_missing=True)
+        weights_path = Path.validate_path(self.context.rigs_path / "weights", create_missing=True)
         for mesh in ls_meshes():
             file_name = self._search_and_replace(mesh)
             new_file, _ = find_new_version(weights_path, file_name, "xml")

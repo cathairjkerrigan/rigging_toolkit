@@ -1,6 +1,6 @@
 from maya import cmds
 from typing import Optional, List
-from pathlib import Path
+from rigging_toolkit.core.filesystem import Path
 from rigging_toolkit.core.filesystem import find_latest_partial, find_file
 
         

@@ -4,8 +4,8 @@ from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 
 from rigging_toolkit.maya.utils import toggle_template_display_for_all_meshes
 from rigging_toolkit.core import Context
-from rigging_toolkit.core.filesystem import has_folders, find_latest
-from pathlib import Path
+from rigging_toolkit.core.filesystem import find_latest
+from rigging_toolkit.core.filesystem import Path
 from rigging_toolkit.maya.shaders import PBRShader, setup_pbr_textures
 from rigging_toolkit.maya.assets.asset_manager import export_all_character_assets
 import pprint
@@ -14,6 +14,7 @@ from rigging_toolkit.maya.shaders import export_shaders, setup_shaders
 from rigging_toolkit.ui.widgets import TabWidget
 from rigging_toolkit.ui.tabs.assets import AssetsTab
 from rigging_toolkit.ui.tabs.rigging import RiggingTab
+from rigging_toolkit.ui.tabs.build_tab import BuildTab
 from maya import cmds
 
 from rigging_toolkit.ui.tabs.test_tab import TestTab
@@ -62,6 +63,9 @@ class RiggingToolboxWindow(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 
         self.rigging_tab = RiggingTab(context=self.context())
         self.add_tab(self._tab_widget, self.rigging_tab)
+
+        self.build_tab = BuildTab(context=self.context())
+        self.add_tab(self._tab_widget, self.build_tab)
 
     
         self._layout.addStretch() 

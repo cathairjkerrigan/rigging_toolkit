@@ -6,7 +6,7 @@ import logging
 from dataclasses import dataclass
 import maya.cmds as cmds
 import maya.mel as mel
-from pathlib import Path
+from rigging_toolkit.core.filesystem import Path
 
 from rigging_toolkit.core.filesystem import find_latest
 from rigging_toolkit.maya.utils.deformers.blendshape import apply_weightmap_to_base

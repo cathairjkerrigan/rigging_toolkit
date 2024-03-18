@@ -2,7 +2,7 @@ from rigging_toolkit.ui.widgets import TabWidget
 from PySide2 import QtWidgets, QtCore
 from rigging_toolkit.maya.utils import list_shapes
 import logging
-from pathlib import Path
+from rigging_toolkit.core.filesystem import Path
 from rigging_toolkit.maya.utils.deformers.blendshape import (
     apply_weightmap_to_target,
     combine_weight_maps,

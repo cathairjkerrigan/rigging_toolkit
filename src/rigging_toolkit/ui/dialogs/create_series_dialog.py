@@ -1,7 +1,7 @@
 from PySide2 import QtWidgets, QtCore, QtGui
 from rigging_toolkit.core import Context
 import logging
-from pathlib import Path
+from rigging_toolkit.core.filesystem import Path
 from typing import Optional
 
 logger = logging.getLogger(__name__)

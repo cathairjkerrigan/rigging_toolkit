@@ -1,5 +1,5 @@
 from maya import cmds
-from pathlib import Path
+from rigging_toolkit.core.filesystem import Path
 import json
 from typing import Optional, List
 from rigging_toolkit.core.filesystem import find_new_version

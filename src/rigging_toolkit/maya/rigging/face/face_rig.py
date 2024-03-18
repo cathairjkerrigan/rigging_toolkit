@@ -5,9 +5,9 @@ from rigging_toolkit.maya.shapes.shape_graph import ShapeGraph
 from rigging_toolkit.maya.assets.asset_manager import import_asset, import_character_assets
 from rigging_toolkit.maya.utils.rigging_utils import create_follicle_jnts_at_vertices
 from rigging_toolkit.maya.utils.mesh_utils import order_vertices_by_axis
-
-from rigging_toolkit.core import Context, find_latest
+from rigging_toolkit.core import Context, find_latest, find_new_version
 from maya import cmds
+from typing import Optional
 import json
 import time
 import logging
@@ -16,11 +16,14 @@ logger = logging.getLogger(__name__)
 
 class FaceRig(object):
 
-    def __init__(self, context):
-        # type: (Context) -> None
+    def __init__(self, context, save_build=False):
+        # type: (Context, Optional[bool]) -> None
         self.context = context
+        self._save_build = save_build
         self._assets = []
         self.build()
+        if self._save_build:
+            self.save()
 
     def build(self):
         st = time.time()
@@ -154,4 +157,10 @@ class FaceRig(object):
 
         cmds.parent(eyebrow_node, "DO_NOT_TOUCH")
         cmds.setAttr(f"{eyebrow_node}.visibility", 0)
+
+    def save(self):
+        builds_path = self.context.builds_path
+        new_file, _ = find_new_version(builds_path, f"{self.context.character_name}_RIG", "ma")
+        cmds.file(rename=str(new_file))
+        cmds.file(s=True, f=True, typ="mayaAscii")
 

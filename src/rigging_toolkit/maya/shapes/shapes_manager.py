@@ -1,7 +1,7 @@
 from maya import cmds
 from typing import Optional, List, Dict, Generator
 from rigging_toolkit.core.context import Context
-from rigging_toolkit.core.filesystem import find_latest, find_new_version, validate_path
+from rigging_toolkit.core.filesystem import find_latest, find_new_version, Path
 from rigging_toolkit.maya.utils import export_blendshape_targets, ls, export_versioned_mesh, import_asset, ExtractCorrectiveDelta, ls_all
 import json
 import logging
@@ -22,7 +22,7 @@ def export_shapes(context):
 
     for shape in shapes:
 
-        shp_folder = validate_path(context.shapes_path / shape, create_missing=True)
+        shp_folder = Path.validate_path(context.shapes_path / shape, create_missing=True)
         
         export_versioned_mesh(shape, shp_folder)
 
@@ -34,9 +34,9 @@ def export_blendshapes(context, split_type=None):
     blendshape_targets = export_blendshape_targets(mesh[0])
     for shape in blendshape_targets:
         if split_type:
-            shp_folder = validate_path(context.shapes_path / split_type / shape, create_missing=True)
+            shp_folder = Path.validate_path(context.shapes_path / split_type / shape, create_missing=True)
         else:
-            shp_folder = validate_path(context.shapes_path / shape, create_missing=True)
+            shp_folder = Path.validate_path(context.shapes_path / shape, create_missing=True)
         
         export_versioned_mesh(shape, shp_folder)
 

@@ -1,6 +1,6 @@
 from typing import Optional, Type, TypeVar
 
-from pathlib import Path
+from rigging_toolkit.core.filesystem import Path
 import subprocess
 from enum import Enum
 

@@ -27,9 +27,19 @@ class WeightMapTool(QtWidgets.QDialog):
 
         self.child_widgets = []
 
-        self._button_layout = QtWidgets.QHBoxLayout()
+        self._button_layout = QtWidgets.QGridLayout()
 
+        self._dir_label = QtWidgets.QLabel("File Path: ")
+        self._dir_lineedit = QtWidgets.QLineEdit()
+        self._dir_lineedit.setText(str(self._initial_directory))
+        self._dir_pushbutton = QtWidgets.QPushButton()
+        self._dir_pushbutton.setIcon(QtGui.QIcon(":fileOpen.png"))
         self._refresh_pushbutton = QtWidgets.QPushButton("Refresh")
+
+        self._button_layout.addWidget(self._dir_label, 0, 0)
+        self._button_layout.addWidget(self._dir_lineedit, 0, 1)
+        self._button_layout.addWidget(self._dir_pushbutton, 0, 2)
+
         self._blendshape_label = QtWidgets.QLabel("Blendshape: ")
         self._blendshape_combobox = QtWidgets.QComboBox()
 

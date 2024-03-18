@@ -2,7 +2,7 @@ from rigging_toolkit.ui.widgets import TabWidget
 from PySide2 import QtWidgets, QtCore
 from rigging_toolkit.maya.utils import list_shapes, export_weight_map, export_all_weight_maps
 import logging
-from pathlib import Path
+from rigging_toolkit.core.filesystem import Path
 
 logger = logging.getLogger(__name__)
 

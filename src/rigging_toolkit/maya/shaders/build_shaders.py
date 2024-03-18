@@ -3,7 +3,7 @@ from rigging_toolkit.maya.utils import import_node_network, export_node_network,
 from rigging_toolkit.core import Context, find_new_version, find_file, find_latest
 from dataclasses import dataclass, field, asdict, fields
 from typing import List, Dict, Optional
-from pathlib import Path
+from rigging_toolkit.core.filesystem import Path
 import logging
 import json
 

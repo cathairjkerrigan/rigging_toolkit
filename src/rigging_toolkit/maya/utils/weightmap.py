@@ -1,21 +1,26 @@
-from typing import List, Optional
+from typing import List, Optional, Union, TYPE_CHECKING
 
 import numpy as np
 
 from rigging_toolkit.maya.utils.delta import Delta
 
+import json
+
+if TYPE_CHECKING:
+    from rigging_toolkit.core.filesystem import Path
+
 
 class WeightMap(object):
     decimals = 5  # type: int
 
-    def __init__(self, name, values, mirror_map=None):
-        # type: (str, List[float], Optional[dict]) -> None
-        self.name = name
+    def __init__(self, name, values, mirror_values=None):
+        # type: (str, List[float], Optional[List[float]]) -> None
+        self._name = name
         self.indices = list(range(len(values)))
         self.values = values
         self.vertex_count = len(values)
         self.weights = {idx: val for idx, val in zip(self.indices, self.values)}
-        self.mirror_map = mirror_map
+        self._mirror_values = mirror_values
 
     def get_weights(self):
         # type: () -> List
@@ -81,10 +86,15 @@ class WeightMap(object):
     def __ne__(self, other):
         # type: (object) -> bool
         return not self.__eq__(other)
-
+    
     def data(self):
         # type: () -> dict
         return {"name": self.name, "values": self.values}
+    
+    def to_file(self, path):
+        # type: (Union[Path, str]) -> None
+        with open(str(path), "w") as f:
+            json.dump(self.data(), f)
 
     @staticmethod
     def load(data):
@@ -101,6 +111,14 @@ class WeightMap(object):
         '''
         values = np.ones(vertex_count)
         return WeightMap(name, values)
+    
+    @staticmethod
+    def from_file(path):
+        # type: (Union[Path, str]) -> WeightMap
+        with open(str(path), "r") as f:
+            data = json.load(f)
+
+        return WeightMap.load(data)
 
     @staticmethod
     def normalize(weight_maps):
@@ -177,3 +195,35 @@ class WeightMap(object):
         vertex_count = weight_maps[0].vertex_count
         combined_weightmap = sum(weight_maps[1:], WeightMap("", values=np.zeros(vertex_count)))
         return weight_maps[0] - combined_weightmap
+    
+    @property
+    def name(self):
+        return self._name
+    
+    @name.setter
+    def name(self, name):
+        self._name = name
+    
+    @property
+    def mirror(self):
+        # type: () -> WeightMap
+        return WeightMap(name=f"{self.name}_mirror_map", values=self._mirror_values, mirror_values=self.values)
+    
+    @mirror.setter
+    def mirror(self, values):
+        # type: (List[float]) -> None
+        if not len(values) == self.vertex_count:
+            raise ValueError(f"Mirror values count does not match WeightMap values count. Expected {self.vertex_count}, got {len(values)}")
+        if not np.allclose(values, self.values):
+            self._mirror_values = values
+        else:
+            raise ValueError("Mirror values match current WeightMap, please provide valid mirror values.")
+
+    @staticmethod
+    def from_file(path):
+        # type: (Union[Path, str]) -> WeightMap
+        with open(str(path), "r") as f:
+            data = json.load(f)
+
+        return WeightMap.load(data)
+
