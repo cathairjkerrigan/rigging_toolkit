@@ -15,11 +15,6 @@ class FileTableWidget(QTableWidget):
         self.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
         self.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
 
-        self.setSortingEnabled(True)
-        self.sortItems(0, Qt.DescendingOrder)
-        self.sortItems(1, Qt.DescendingOrder)
-        self.sortItems(2, Qt.DescendingOrder)
-
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setSelectionMode(QTableWidget.SingleSelection)
         self.setEditTriggers(QTableWidget.NoEditTriggers)
