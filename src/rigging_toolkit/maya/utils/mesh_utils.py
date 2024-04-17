@@ -118,28 +118,52 @@ def get_shaders_from_mesh(mesh):
 def get_shaders_from_meshes(meshes):
     # type: (List[str]) -> List[str]
     collected_shaders = []
-
+    logger.info(f"{meshes} checking for shaders")
     for mesh in meshes:
         shaders = get_shaders_from_mesh(mesh)
         if shaders is None:
+            logger.info(f"shaders not found on {mesh}")
             continue
+        logger.info(shaders)
         for shader in shaders:
             if not shader in collected_shaders:
                 collected_shaders.append(shader)
 
     return collected_shaders
 
-def assign_shader(mesh, shader):
-    # type: (str, str) -> None
-    if not cmds.objExists(mesh):
-        logger.warning(f"Failed to assign {shader} to {mesh} -- {mesh} doesn't exist...")
-        return
+def get_shading_group_from_shader(shader):
+    # type: (str) -> str
     if not cmds.objExists(shader):
-        logger.warning(f"Failed to assign {shader} to {mesh} -- {mesh} doesn't exist...")
+        logger.warning(f"shader: {shader} doesn't exist")
         return
-    cmds.select(mesh)
-    cmds.hyperShade(assign=shader)
-    cmds.select(cl=True)
+    
+    shader_set = cmds.listConnections(shader, d=True, et=True, t="shadingEngine")[0]
+    return shader_set
+
+def assign_shader(meshes, shader):
+    # type: (List[str], str) -> None
+    for mesh in meshes:
+        if not cmds.objExists(mesh):
+            logger.warning(f"Failed to assign {shader} to {mesh} -- {mesh} doesn't exist...")
+            return
+    if not cmds.objExists(shader):
+        logger.warning(f"Failed to assign {shader} to {mesh} -- {shader} doesn't exist...")
+        return
+    # cmds.select(cl=True)
+    # cmds.select(mesh)
+    # logger.info(f"selected mesh: {mesh} being assigned to {shader}")
+    # cmds.hyperShade(assign=shader)
+    # cmds.select(cl=True)
+    
+    logger.warning(f"shader being used is: {shader}")
+
+    shading_group = get_shading_group_from_shader(shader)
+
+    if not shading_group:
+        logger.warning(f"failed to assign shader to {meshes}, no shading group found")
+        return
+    
+    cmds.sets(meshes, e=True, forceElement=shading_group)
 
 def get_all_meshes():
     # type: () -> List[str]

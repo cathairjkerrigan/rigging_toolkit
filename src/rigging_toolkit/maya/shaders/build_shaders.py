@@ -35,6 +35,7 @@ DEBUG = True
 def export_shaders(meshes, file_path):
     # type: (List[str], Path) -> None
     shaders = get_shaders_from_meshes(meshes)
+    if DEBUG: logger.info(f"shaders found on {meshes}: {shaders}")
     for shader in shaders:
         path, _ = find_new_version(file_path, shader, "json")
         if DEBUG: logger.info(f"export shaders: shader -- {shader} | file_path -- {str(path)}")
@@ -46,21 +47,23 @@ def export_selected_shaders(context):
     file_path = context.shaders_path
     export_shaders(meshes, file_path)
 
-def import_shader(file_path, meshes=None, name_overwrite=None):
-    # type: (Path, Optional[List[str]], Optional[str]) -> None
+def import_shader(file_path):
+    # type: (Path) -> None
     import_node_network(file_path)
-    if meshes is not None:
-        shader = name_overwrite if name_overwrite else file_path.stem
-        for mesh in meshes:
-            assign_shader(mesh=mesh, shader=shader)
+    
 
 def setup_shaders(context):
     # type: (Context) -> None
     shader_json = find_file(context.config_path, "setup_shaders", "json")
+    if shader_json is None:
+        return
     with open(str(shader_json)) as f:
         setup_data = json.load(f)
 
-    for shader, meshes in setup_data.items():
+    for shader in setup_data.keys():
         shader_file, _ = find_latest(context.shaders_path, shader, "json")
-        import_shader(shader_file, meshes, name_overwrite=shader)
+        import_shader(shader_file)
+
+    # for shader, meshes in setup_data.items():
+    #     assign_shader(meshes, shader)
 

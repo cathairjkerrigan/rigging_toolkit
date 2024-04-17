@@ -342,7 +342,7 @@ class AER():
         return curve_cvs_pos
     
     def order_cvs(self, corner_A_pos, corner_B_pos, upper_cv_pos, lower_cv_pos):
-        # type: (List[float], List[float], List[List[float]], List[List[float]]) -> Tuple(List[List[float]], List[List[float]])
+        # type: (List[float], List[float], List[List[float]], List[List[float]]) -> Tuple[List[List[float]], List[List[float]]]
         '''
         Order of CVs in base lists:			Order of CVs in ordered lists:
         (upper_cv_pos, lower_cv_pos)			(upper_cvs_ordered, lower_cvs_ordered)

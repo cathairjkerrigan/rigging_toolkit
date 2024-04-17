@@ -1,6 +1,7 @@
 from rigging_toolkit.maya.rigging.eyes import build_eye_rig
 from rigging_toolkit.maya.utils.deformers.skincluster import import_skin_weights
 from rigging_toolkit.maya.utils.deformers.general import deformers_by_type
+from rigging_toolkit.maya.shaders import setup_shaders
 from rigging_toolkit.maya.shapes.shape_graph import ShapeGraph
 from rigging_toolkit.maya.assets.asset_manager import import_asset, import_character_assets
 from rigging_toolkit.maya.utils.rigging_utils import create_follicle_jnts_at_vertices
@@ -28,8 +29,8 @@ class FaceRig(object):
     def build(self):
         st = time.time()
         cmds.file(new=True, f=True)
-        self.import_body_rig()
         self.import_assets()
+        self.import_body_rig()
         ShapeGraph(self.context, load_neutral=False)
         self.import_teeth_eyes_module()
         self.import_UI()
@@ -69,9 +70,9 @@ class FaceRig(object):
 
         cmds.parent(jnts, "head")
         cmds.parent("Jaw_Rig_GRP", "head_ctrl")
-        cmds.parent("Eye_Rig_GRP", "controls")
+        cmds.parent("Eye_Rig_GRP", "head_ctrl")
 
-        parent_constraint = cmds.parentConstraint("root_ctrl", "head_ctrl", "Eye_C_CON", mo=True, w=0, sr=["x", "y", "z"])[0]
+        parent_constraint = cmds.parentConstraint("root_ctrl", "head_ctrl", "Eye_C_CON_OFFSET", mo=True, w=0)[0]
         reverse_node = cmds.createNode("reverse", n="Eye_C_CON_Follow_Reverse")
         cmds.connectAttr("Eye_C_CON.Follow_Head", f"{reverse_node}.inputX")
         cmds.connectAttr("Eye_C_CON.Follow_Head", f"{parent_constraint}.head_ctrlW1")
@@ -86,13 +87,15 @@ class FaceRig(object):
 
         cmds.file(str(latest), i=True, uns=False)
 
+        cmds.parent(self._assets, "export_geometry")
+
     def import_assets(self):
         # type: () -> None
 
-        assets = import_character_assets(self.context, ignore_list=["eyelashes"], return_nodes=True)
+        assets = import_character_assets(self.context, ignore_list=["eyelashes", "baseBody"], return_nodes=True)
         assets = [x.replace("|", "") for x in assets if "Shape" not in x]
         self._assets.extend(assets)
-        cmds.parent(assets, "export_geometry")
+        setup_shaders(self.context)
 
     def import_weights(self):
         # type: () -> None

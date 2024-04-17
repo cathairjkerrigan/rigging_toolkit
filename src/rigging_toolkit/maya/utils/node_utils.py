@@ -100,7 +100,6 @@ def capture_node_tree(node):
         custom_attrs = cmds.listAttr(n, ud=True) or []
         node_attr_values = {}
         for attr in node_attrs:
-            is_custom = False
             exists = cmds.attributeQuery(attr,n=f"{n}", ex=True)
             if not exists:
                 continue
@@ -111,10 +110,8 @@ def capture_node_tree(node):
                 value = cmds.getAttr(f"{n}.{attr}")
             except:
                 value = cmds.getAttr(f"{n}.{attr}", mi=True)
-            if attr in custom_attrs:
-                is_custom = True
             serialized_value = serialize_attribute(attr_type, value)
-            node_attr_values[attr] = (attr_type, serialized_value, is_custom)
+            node_attr_values[attr] = (attr_type, serialized_value)
 
         node_type = cmds.nodeType(n)
         node_data = NodeData(name=n, node_type=node_type, attributes=node_attr_values, connections=[])

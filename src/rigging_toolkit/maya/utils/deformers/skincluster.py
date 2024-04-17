@@ -161,8 +161,8 @@ def import_skin_weights(mesh, weights_path):
 
     logger.info(f"Importing maya weights for {mesh} from {weights_path}")
 
-    weights_dir = str(weights_path.parent)
-    weights_file = weights_path.name
+    weights_dir = str(weights_path.parent) # folder directory
+    weights_file = weights_path.name # file_name
 
     skin_cluster = get_skin_cluster(mesh)
     if not skin_cluster:
