@@ -36,6 +36,8 @@ class Path(_Path):
     @staticmethod
     def validate_path(path, create_missing=False, raise_error=False):
         # type: (Path, Optional[bool], Optional[bool]) -> Path
+        if path is None:
+            return None
         path = Path(path)
         if not path.exists():
             if path is None and raise_error:
