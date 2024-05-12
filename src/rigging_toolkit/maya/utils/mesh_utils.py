@@ -55,6 +55,20 @@ def export_versioned_mesh(mesh, folder):
     )
     logger.info(f"Mesh {mesh} successfully exported to {str(new_version)}")
 
+def export_versioned_mesh_with_animation(mesh, folder):
+    # type: (str, Path) -> None
+    root = get_mesh_path(mesh)
+    no_name_space_name = mesh.split(":")[1] if len(mesh.split(":")) > 1 else mesh
+    new_name = f"{no_name_space_name}_anim" 
+    new_version, _ = find_new_version(folder, new_name, "abc")
+    start_frame = int(cmds.playbackOptions(q=True, min=True))
+    end_frame = cmds.playbackOptions(q=True, max=True)
+
+    print(new_version)
+    cmds.AbcExport(
+        j=f"-frameRange {start_frame} {end_frame} -stripNamespaces -uvWrite writeColorSets -writeFaceSets -writeUVSets -dataFormat ogawa -root {root} -file {str(new_version)}"
+    )
+
 def get_all_shapes():
     # type: () -> List
     return cmds.ls(exactType="mesh")
