@@ -21,7 +21,6 @@ def export_shapes(context):
     shapes = [element for element in ls_all() if pattern.match(element)]
 
     for shape in shapes:
-
         shp_folder = Path.validate_path(context.shapes_path / shape, create_missing=True)
         
         export_versioned_mesh(shape, shp_folder)
