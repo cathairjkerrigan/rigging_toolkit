@@ -1,4 +1,5 @@
 import maya.api.OpenMaya as om2
+import maya.api.OpenMayaAnim as oma2
 from maya import cmds
 from typing import Optional, Union, List, Text
 from .general import deformers_by_type
@@ -222,3 +223,106 @@ def transfer_skin_cluster(source_mesh, target_mesh):
         surfaceAssociation="closestPoint",
         influenceAssociation="closestJoint",
     )
+
+class SkinWeightsSmoother:
+    def __init__(self, selection, depth, favor_edge_weight=0.5, use_faces=False):
+        self.selection = selection
+        self.depth = depth
+        self.favor_edge_weight = favor_edge_weight
+        self.use_faces = use_faces
+        self.skin_cluster = None
+        self.vertices = set()
+        self.edges = set()
+        self.mesh = None
+
+    def initialize(self):
+        # Convert selection to MObject
+        self.mesh = self.get_dag_path(self.selection[0])
+
+        # Get the skin cluster
+        self.skin_cluster = self.get_skin_cluster(self.mesh)
+
+        # Get the vertices in the selection
+        self.vertices = set(self.selection)
+
+        # Identify edge vertices
+        self.edges = self.find_edge_vertices()
+
+    def get_dag_path(self, vertex):
+        selection_list = om2.MSelectionList()
+        selection_list.add(vertex)
+        dag_path, component = selection_list.getComponent(0)
+        return dag_path
+
+    def get_skin_cluster(self, dagPath):
+        iter = om2.MItDependencyGraph(dagPath.node(), om2.MFn.kSkinClusterFilter, om2.MItDependencyGraph.kUpstream)
+        while not iter.isDone():
+            skinClusterNode = iter.currentItem()
+            if skinClusterNode.apiType() == om2.MFn.kSkinClusterFilter:
+                return oma2.MFnSkinCluster(skinClusterNode)
+            iter.next()
+        return None
+
+    def find_edge_vertices(self):
+        edge_vertices = set()
+        vertIter = om2.MItMeshVertex(self.mesh)
+        while not vertIter.isDone():
+            if vertIter.index() in self.vertices:
+                connectedVertices = vertIter.getConnectedVertices()
+                for i in range(len(connectedVertices)):
+                    if connectedVertices[i] not in self.vertices:
+                        edge_vertices.add(vertIter.index())
+                        break
+            vertIter.next()
+        return edge_vertices
+
+    def smooth_weights(self):
+        vertex_weights = self.get_vertex_weights()
+        new_weights = {v: vertex_weights[v] for v in self.vertices}
+
+        for v in self.edges:
+            self.smooth_vertex_weights(v, new_weights, self.depth, vertex_weights)
+        
+        self.set_vertex_weights(new_weights)
+
+    def get_vertex_weights(self):
+        # Retrieve current weights for all vertices
+        weights = {}
+        infCount = len(self.skin_cluster.influenceObjects())
+        vertIter = om2.MItMeshVertex(self.mesh)
+        while not vertIter.isDone():
+            index = vertIter.index()
+            weights[index] = self.skin_cluster.getWeights(self.mesh, vertIter.currentItem())[0]
+            vertIter.next()
+        return weights
+
+    def smooth_vertex_weights(self, vertex, new_weights, depth, vertex_weights):
+        queue = [(vertex, 0)]
+        visited = set()
+        
+        while queue:
+            v, d = queue.pop(0)
+            if v in visited or d > depth:
+                continue
+            visited.add(v)
+            
+            connectedVertices = om2.MItMeshVertex(self.mesh).getConnectedVertices()
+            
+            for i in range(len(connectedVertices)):
+                neighbor = connectedVertices[i]
+                if neighbor in self.vertices or neighbor in visited:
+                    continue
+                
+                t = d / depth
+                new_weights[neighbor] = (1 - t) * vertex_weights[vertex] + t * vertex_weights[neighbor]
+                
+                queue.append((neighbor, d + 1))
+
+    def set_vertex_weights(self, weights):
+        # Set the new weights to the vertices
+        infCount = len(self.skin_cluster.influenceObjects())
+        vertIter = om2.MItMeshVertex(self.mesh)
+        while not vertIter.isDone():
+            index = vertIter.index()
+            self.skin_cluster.setWeights(self.mesh, vertIter.currentItem(), om2.MIntArray(infCount, 1), weights[index], False)
+            vertIter.next()
