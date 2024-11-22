@@ -77,6 +77,8 @@ def baricentre_from_selection(place_handle=False):
     if place_handle:
         build_handle(pos)
 
+    return pos
+
 def get_shaders_from_selection():
     # type: () -> List[str]
     
