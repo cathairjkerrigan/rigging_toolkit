@@ -8,7 +8,7 @@ from rigging_toolkit.core.filesystem import Path
 from rigging_toolkit.core.filesystem import find_new_version
 from rigging_toolkit.maya.utils.api.dag import get_dag_path_api_2
 import maya.api.OpenMaya as om2
-
+from rigging_toolkit.maya.utils.delta import Delta
 
 TEMPLATE_OFF = 0
 TEMPLATE_ON = 1
@@ -380,3 +380,143 @@ def mirror_vertices_by_edge(mesh, edge_id, v_ids):
     cmds.selectMode(object=True)
     cmds.select(clear=True)
     return sym_ids
+
+def get_vertex_neighbours(
+    vertices=None, depth=3, use_faces=True, include_overlap=True, distance_threshold=0.1
+):
+    # type: (Optional[List[str]], Optional[int], Optional[bool], Optional[bool], Optional[float]) -> Tuple[List[om2.MIntArray], List[int]]
+
+    if vertices is None:
+        sel = om2.MGlobal.getActiveSelectionList()
+        dag_path, mob = sel.getComponent(0)
+        fn_comp = om2.MFnSingleIndexedComponent(mob)
+        vert_ids = fn_comp.getElements()
+    else:
+        sel = om2.MSelectionList()
+        for vert in vertices:
+            sel.add(vert)
+        dag_path, mob = sel.getComponent(0)
+        fn_comp = om2.MFnSingleIndexedComponent(mob)
+        vert_ids = fn_comp.getElements()
+
+    it_vtx = om2.MItMeshVertex(dag_path)
+    fn_mesh = om2.MFnMesh(dag_path)
+
+    current_depth = 1
+
+    og_verts = vert_ids
+
+    def _get_neighbours(it_vtx, fn_mesh, vert_ids, use_faces):
+        new_ids = []
+        for v_id in vert_ids:
+            it_vtx.setIndex(v_id)
+            if use_faces:
+                # faces = it_vtx.getConnectedFaces()
+                # for face in faces:
+                #     face_verts = fn_mesh.getPolygonVertices(face)
+                #     new_ids.extend(face_verts)
+
+                face_verts = [
+                    x
+                    for face in it_vtx.getConnectedFaces()
+                    for x in fn_mesh.getPolygonVertices(face)
+                ]
+                new_ids.extend(face_verts)
+            else:
+                verts = it_vtx.getConnectedVertices()
+                new_ids.extend(verts)
+        return list(set(new_ids))
+
+    if include_overlap:
+        overlap_ids = []
+        neighbouring_vertices = _get_neighbours(it_vtx, fn_mesh, vert_ids, use_faces)
+
+        all_vertex_positions = np.array(
+            [
+                [
+                    fn_mesh.getPoint(v, om2.MSpace.kWorld).x,
+                    fn_mesh.getPoint(v, om2.MSpace.kWorld).y,
+                    fn_mesh.getPoint(v, om2.MSpace.kWorld).z,
+                ]
+                for v in range(fn_mesh.numVertices)
+            ]
+        )
+
+        vert_positions = np.array(
+            [
+                [
+                    fn_mesh.getPoint(vtx, om2.MSpace.kWorld).x,
+                    fn_mesh.getPoint(vtx, om2.MSpace.kWorld).y,
+                    fn_mesh.getPoint(vtx, om2.MSpace.kWorld).z,
+                ]
+                for vtx in vert_ids
+            ]
+        )
+
+        def _find_nearby_vertices(
+            vert_positions, all_vertex_positions, distance_threshold
+        ):
+            distances = np.linalg.norm(
+                all_vertex_positions[:, np.newaxis, :]
+                - vert_positions[np.newaxis, :, :],
+                axis=2,
+            )
+            within_threshold = np.where(distances <= distance_threshold)
+            nearby_indices = within_threshold[0]
+            return nearby_indices
+
+        nearby_indices = _find_nearby_vertices(
+            vert_positions, all_vertex_positions, distance_threshold
+        )
+        unique_nearby_indices = (
+            set(nearby_indices) - set(vert_ids) - set(neighbouring_vertices)
+        )
+
+        overlap_ids = list(unique_nearby_indices)
+
+        vert_ids = vert_ids + overlap_ids
+
+        og_verts = vert_ids
+
+    while current_depth <= depth:
+        vert_ids = vert_ids + _get_neighbours(it_vtx, fn_mesh, vert_ids, use_faces)
+        current_depth += 1
+
+    neighbouring_vertices = list(set(vert_ids) - set(og_verts))
+
+    return (og_verts, neighbouring_vertices)
+
+def apply_delta_to_mesh(delta, mesh):
+    # type: (str, Delta) -> None
+    mesh_fn = om2.MFnMesh(get_dag_path_api_2(mesh))
+    points = mesh_fn.getPoints()
+
+    for id, offset in zip(delta.indices, delta.deltas):
+        points[id] = points[id] + om2.MVector(offset)
+
+    mesh_fn.setPoints(points)
+
+
+def get_delta_from_mesh(mesh):
+    # type: (str) -> Delta
+    if not cmds.objectType(mesh, i="mesh"):
+        mesh = cmds.listRelatives(mesh, s=True)[0]
+
+    sel = om2.MSelectionList()
+    sel.add(mesh)
+    dag_path = sel.getDagPath(0)
+    fn_mesh = om2.MFnMesh(dag_path)
+
+    points = fn_mesh.getPoints(space=om2.MSpace.kWorld)
+
+    points = np.array(
+        [[points[i].x, points[i].y, points[i].z] for i in range(len(points))]
+    )
+
+    delta_data = {}
+    delta_data["name"] = mesh
+    delta_data["indices"] = list(range(len(points)))
+    delta_data["deltas"] = points
+
+    delta = Delta.load(delta_data)
+    return delta
