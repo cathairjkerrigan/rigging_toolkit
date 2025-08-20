@@ -1,0 +1,68 @@
+{
+    "splitting_data": [
+        {
+            "split": [
+                "Left",
+                "Right"
+            ],
+            "shapes": [
+                "shp_01_L1",
+                "shp_02_L1",
+                "shp_03_L1",
+                "shp_04_L1",
+                "shp_05_L1",
+                "shp_06_L1",
+                "shp_07_L1",
+                "shp_09_L1",
+                "shp_10_L1",
+                "shp_11_L1",
+                "shp_12_L1",
+                "shp_13_L1",
+                "shp_14_L1",
+                "shp_15_L1",
+                "shp_16_L1",
+                "shp_20_L1",
+                "shp_21_L1",
+                "shp_24_L1",
+                "shp_33_L1",
+                "shp_35_L1",
+                "shp_38_L1",
+                "shp_39_L1",
+                "shp_innerBrowDown_L1",
+                "shp_lowerLidsDown_L1",
+                "shp_lowerLidsUp_L1",
+                "shp_lowerLipUp_L1",
+                "shp_mouthNarrow_L1",
+                "shp_sniff_L1",
+                "shp_upperLipDown_L1",
+                "shp_earUp_L1",
+                "shp_earDown_L1",
+                "virt_25_L1"
+            ]
+        },
+        {
+            "split": [
+                "UpperLeft",
+                "UpperRight",
+                "DownLeft",
+                "DownRight"
+            ],
+            "shapes": [
+                "shp_18_L1",
+                "shp_22_25_L1",
+                "shp_28_L1",
+                "shp_17_L1",
+                "shp_mouthDown_L1"
+            ]
+        },
+        {
+            "split": [
+                "Upper",
+                "Down"
+            ],
+            "shapes": [
+                "shp_23_L1"
+            ]
+        }
+    ]
+}

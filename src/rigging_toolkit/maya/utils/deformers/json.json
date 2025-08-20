@@ -1,0 +1,18 @@
+{
+    "four_split_targets" = [
+        "msk_xUpperLeft",
+        "msk_xUpperRight",
+        "msk_xDownLeft",
+        "msk_xDownRight"
+    ],
+
+"left_right_targets" = [
+        "msk_xLeft",
+        "msk_xRight"
+    ]
+
+"upper_down_targets" = [
+    "msk_xUpper",
+    "msk_xDown"
+],
+}

@@ -85,6 +85,30 @@ class ToolkitShelf(Shelf):
             )
         )
 
+        self.addButton(
+            label="Parent Shapes",
+            tooltip="Parent shapes from selected transforms to first transform selected.",
+            command=dedent(
+                """
+                from rigging_toolkit.maya.utils import parent_shapes
+                from maya import cmds
+                parent_shapes(cmds.ls(sl=1))
+                """
+            )
+        )
+
+        self.addButton(
+            label="Set Shapes Reference Override",
+            tooltip="Set reference display override for all shapes in selection.",
+            command=dedent(
+                """
+                from rigging_toolkit.maya.utils import set_shapes_reference_display
+                from maya import cmds
+                set_shapes_reference_display(cmds.ls(sl=1))
+                """
+            )
+        )
+
         self.addSeperator()
 
         self.addButton(
